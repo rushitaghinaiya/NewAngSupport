@@ -1,0 +1,40 @@
+<div class="vh-100 d-flex align-items-center justify-content-center"
+     style="background-image: url('logo/bg10.jpg'); background-size: cover; background-position: center;">
+    <div class="row w-100" style="max-width: max-content; min-height: 550px;">
+  
+      <!-- Left Side Image -->
+      <div class="col-md-6 d-none d-md-flex flex-column align-items-center justify-content-center p-4">
+        <img src="logo/agency.png" alt="Illustration" class="img-fluid mb-4" style="max-height: 320px;">
+        
+        <div class="text-center">
+          <h4 class="fw-bold mb-2">Fast, Efficient and Productive</h4>
+          <p class="text-muted small px-3">
+            In this kind of post, <span class="text-primary">the blogger</span> introduces a person they've interviewed and 
+            provides some background information about <span class="text-primary">the interviewee</span> and their work. 
+            Following this is a transcript of the interview.
+          </p>
+        </div>
+      </div>
+  
+      <!-- Right Side Login -->
+      <div class="col-md-5 d-flex flex-column align-items-center justify-content-center p-4 shadow rounded-4 bg-white overflow-hidden">
+        <img src="logo/Logo-Horizontal.png" alt="Logo" style="width: 180px; height: auto;" class="mb-4" />
+        <h4 class="mb-4 fw-bold text-center">Sign In</h4>
+  
+        <form  class="w-100" style="max-width: 320px;">
+          <div class="mb-3">
+            <input type="text" class="form-control" id="username" [(ngModel)]="loginObj.UserName" name="username" placeholder="Enter your username" required>
+
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" id="password" [(ngModel)]="loginObj.Password" name="password" placeholder="Enter your password" required>
+
+          </div>
+          
+          <button type="button" (click)="OnLogin()" class="btn btn-primary w-100">Sign In</button>
+        </form>
+      </div>
+  
+    </div>
+  </div>
+  
