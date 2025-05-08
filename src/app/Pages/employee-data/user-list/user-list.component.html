@@ -1,20 +1,46 @@
-<div class="row">
-    <div class="col-6">
-        <table class="table table-bordered">
-            <thead>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Address</th>
-            </thead>
-            <tbody>
-            @for(item of userList;track $index){
-            <tr>
-                <td>{{item.orgId}}</td>
-                <td>{{item.name}}</td>
-                <td>{{item.address}}</td>
-            </tr>
-            }
-        </tbody>
-        </table>
+<div class="row align-items-center mb-4">
+    <div class="col-md-4 d-flex justify-content-between justify-content-md-end">
+      <h5 class="fw-bold mb-0 me-3">First Verification</h5>
+      <button [hidden]="totalReportFirst <= 0" class="btn btn-info text-white fw-semibold" (click)="FirstVerification(reportIdFirst,true)">Verify Report</button>
     </div>
-</div>
+    <div class="col-md-4 d-flex justify-content-between justify-content-md-end">
+      <h5 class="fw-bold mb-0 me-3">Peer Verification</h5>
+      <button [hidden]="totalReportPeer <= 0" class="btn btn-info text-white fw-semibold">Verify Report</button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- First Verification Card -->
+    <div class="col-md-4">
+      <div class="report-card card-red">
+        <div class="card-icon mb-3 text-center">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <div class="text-center">
+          <div class="report-number"> {{ totalReportFirst }}</div>
+          <div class="report-title">Total Reports</div>
+        </div>
+        <div class="bottom-section">
+          <div class="fs-4">{{totalDistParentFirst}}</div>
+          <div class="fw-semibold">Distinct Patients</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Peer Verification Card -->
+    <div class="col-md-4">
+      <div class="report-card card-purple">
+        <div class="card-icon mb-3 text-center">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <div class="text-center">
+          <div class="report-number">{{totalReportPeer}}</div>
+          <div class="report-title">Total Reports</div>
+        </div>
+        <div class="bottom-section">
+          <div class="fs-4">{{totalDistParentPeer}}</div>
+          <div class="fw-semibold">Distinct Patients</div>
+        </div>
+      </div>
+    </div>
+  </div>

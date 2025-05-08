@@ -1,0 +1,17 @@
+table th,
+table td {
+  vertical-align: middle;
+}
+
+textarea {
+  resize: none;
+}
+
+.scroll{
+  height: 300px;
+  overflow-y: scroll;
+  overflow-x: auto;
+}
+.d-none {
+  display: none;
+}
