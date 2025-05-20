@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 })
 export class LoginComponent {
   toggleForm: boolean = false;
+  support: any[] = [];
   registerObj: any = {
     Password: "",
     ContactNo: "",
@@ -34,8 +35,14 @@ export class LoginComponent {
       debugger
       localStorage.setItem("userApp",JSON.stringify(res.responseData));
       localStorage.setItem("token",res.responseData.authenticationModel.token);
-      console.log("Token",res.responseData.authenticationModel.token)
       if (res.statusMessage == "success") {
+        this.http.get(`https://localhost:7050/api/v1/Support/GetSupportByUserId?UserId=${res.responseData.userId}`).subscribe((res: any) => {
+          debugger;
+          if (res.responseData) {
+            this.support=res.responseData.firstname;
+            localStorage.setItem("supportFullName",res.responseData.firstname);
+          }
+        });
         this.router.navigateByUrl("user-list")
       }
       else {

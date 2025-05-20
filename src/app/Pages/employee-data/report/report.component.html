@@ -1,158 +1,334 @@
 <div class="container mt-4">
   <h4 class="fw-bold">Verify Report</h4>
   <div class="row g-3 mt-2 border rounded p-3 bg-white">
-      <div class="row">
-          <div class="col-md-3">
-              <label class="form-label fw-semibold">Patient Name *</label>
-              <input type="text" class="form-control" [value]="report?.patientName" readonly />
-          </div>
-          <div class="col-md-3">
-              <label class="form-label fw-semibold">Patient Telephone *</label>
-              <input type="text" class="form-control"  placeholder="enter telephone" />
-          </div>
-          <div class="col-md-3">
-              <label class="form-label fw-semibold">Referred by Doctor *</label>
-              <input type="text" class="form-control" placeholder="enter name" />
-          </div>
-          <div class="col-md-3">
-              <label class="form-label fw-semibold">Lab Name *</label>
-              <input type="text" class="form-control" placeholder="enter lab name" />
-          </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Patient Name *</label>
+        <input type="text" class="form-control" [value]="reports.Report.patientName" readonly />
       </div>
-      <div class="row">
-          <div class="col-md-4">
-              <label class="form-label fw-semibold">Issued Date *</label>
-              <input type="text" class="form-control" [value]="report?.issuedOn" readonly/>
-          </div>
-          <div class="col-md-4">
-              <label class="form-label fw-semibold">Branch Name *</label>
-              <input type="text" class="form-control" [value]="report?.branchName" placeholder="enter branch name" />
-          </div>
-          <div class="col-md-4">
-              <label class="form-label fw-semibold">Verification Status *</label>
-              <select class="form-select" [value]="report?.verificationStatus">
-                  <option selected>Un-Verified</option>
-                  <option>Verified</option>
-              </select>
-          </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Patient Telephone *</label>
+        <input type="text" class="form-control" placeholder="enter telephone" />
       </div>
-      <div class="col-12 text-end text-danger small">
-          <em>Note: Please validate name before verifying the report.</em>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Referred by Doctor *</label>
+        <input type="text" class="form-control" placeholder="enter name" />
       </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Lab Name *</label>
+        <input type="text" class="form-control" placeholder="enter lab name" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Issued Date *</label>
+        <input type="text" class="form-control" [value]="reports.Report.issuedOn" readonly />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Branch Name *</label>
+        <input type="text" class="form-control" [value]="report?.branchName" placeholder="enter branch name" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Verification Status *</label>
+        <select class="form-select" [value]="report?.verificationStatus">
+          <option selected>Un-Verified</option>
+          <option>Verified</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-12 text-end text-danger small">
+      <em>Note: Please validate name before verifying the report.</em>
+    </div>
   </div>
 
   <h5 class="mt-2 fw-bold">Detailed Report</h5>
 
   <div class="row mt-3 border rounded p-4 bg-white">
-      <div class="col-lg-6">
-          <div class="mb-2 d-flex align-items-center gap-2">
-              <ng-container *ngIf="report && report.tests && report.tests.length > 0">
-                  <select class="form-select" [(ngModel)]="selectedDivId">
-                      <option *ngFor="let test of report?.tests; let i = index"
-                          [id]="'divTest_' + i" [value]="'divTest_' + i">
-                          {{ test.name }}
-                      </option>
-                  </select>
-              </ng-container>
-          </div>
-
-          <div class="d-flex justify-content-between mb-2">
-              <div class="d-flex gap-2">
-                  <button class="btn btn-success btn-sm">Add</button>
-                  <button class="btn btn-primary btn-sm" (click)="openAddTestModal()">Edit</button>
-              </div>
-              <div>
-                  <button class="btn btn-danger btn-sm">Invalid Report</button>
-              </div>
-          </div>
-
-          <ng-container *ngIf="report && report.tests && report.tests.length > 0">
-              <div
-                  class="divTestDivs rpt_dtls scroll"
-                  *ngFor="let test of report?.tests; let i = index"
-                  [id]="'divTest_' + i"
-                  [class.d-none]="selectedDivId !== ('divTest_' + i)">
-                  <div class="mb-10">
-                      <h6 class="mb-4 fw-bold">
-                          {{ test.name }}
-                      </h6>
-
-                      <div id="testfields">
-                          <table class="table table-bordered">
-                              <thead>
-                                  <tr class="text-gray-800">
-                                      <th>Tests</th>
-                                      <th>Result</th>
-                                      <th>Unit</th>
-                                      <th>Reference Range</th>
-                                  </tr>
-                              </thead>
-                              <tbody>
-                                  <tr *ngFor="let field of test?.testFields">
-                                      <ng-container *ngIf="field.name && field.value">
-                                          <td>{{ field.name }}</td>
-                                          <td>{{ field.value }}</td>
-                                          <td>{{ field.unit }}</td>
-                                          <td>
-                                              <ng-container *ngIf="field.testFieldRanges.length > 0">
-                                                  <div *ngFor="let range of field.testFieldRanges">
-                                                      <ng-container *ngIf="range">
-                                                          <span>{{ getRangeDescription(range) }}</span><br />
-                                                      </ng-container>
-                                                  </div>
-                                              </ng-container>
-                                          </td>
-                                      </ng-container>
-                                  </tr>
-                              </tbody>
-                          </table>
-                      </div>
-                  </div>
-
-                  <div class="mb-5" *ngIf="test.testNotes.length > 0">
-                      <h5 class="mb-4">Notes:</h5>
-                      <table class="table table-bordered">
-                          <thead>
-                              <tr class="text-gray-800">
-                                  <th>Test Note</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr *ngFor="let note of test.testNotes; let j = index">
-                                  <td>
-                                      <input type="hidden" [value]="note.testNoteId" />
-                                      <input type="text" class="form-control" [(ngModel)]="note.value" />
-                                  </td>
-                              </tr>
-                          </tbody>
-                      </table>
-                  </div>
-              </div>
-          </ng-container>
-
-          <div class="mt-3">
-              <label class="form-label fw-semibold">Notes:</label>
-              <textarea class="form-control" rows="1" placeholder="Test Note"></textarea>
-          </div>
-
-          <div class="mt-3 d-flex gap-2">
-              <button class="btn btn-success">Verify Report</button>
-              <button class="btn btn-outline-success">Save Report</button>
-          </div>
+    <div class="col-lg-6">
+      <div class="mb-2 d-flex align-items-center gap-2">
+        <ng-container *ngIf="reports && reports?.Report?.tests && reports.Report.tests.length > 0">
+          <select class="form-select" [(ngModel)]="selectedDivId">
+            <option *ngFor="let test of reports.Report?.tests; let i = index" [id]="'divTest_' + i"
+              [value]="'divTest_' + i">
+              {{ test.name }}
+            </option>
+          </select>
+        </ng-container>
       </div>
 
-      <div class="col-lg-6 mt-4 mt-lg-0">
-          <!-- Simulated PDF Viewer -->
-          <div class="border rounded overflow-hidden">
-              <iframe [src]="pdfUrl" width="100%" height="500px"></iframe>
-          </div>
+      <div class="d-flex justify-content-between mb-2">
+        <div class="d-flex gap-2">
+          <button class="btn btn-success btn-sm" (click)="openAddNewTestModal()">Add</button>
+          <button class="btn btn-primary btn-sm" (click)="openAddTestModal()">Edit</button>
+        </div>
+        <div>
+          <button class="btn btn-danger btn-sm">Invalid Report</button>
+        </div>
       </div>
+
+      <ng-container *ngIf="reports && reports.Report.tests && reports.Report.tests.length > 0">
+        <div class="divTestDivs rpt_dtls scroll" *ngFor="let test of reports.Report?.tests; let i = index"
+          [id]="'divTest_' + i" [class.d-none]="selectedDivId !== ('divTest_' + i)">
+          <div class="mb-10">
+            <h6 class="mb-4 fw-bold">
+              {{ test.name }}
+            </h6>
+
+            <div id="testfields">
+              <table class="table table-bordered">
+                <thead>
+                  <tr class="text-gray-800">
+                    <th>Tests</th>
+                    <th>Result</th>
+                    <th>Unit</th>
+                    <th>Reference Range</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let field of test?.testFields">
+                    <ng-container *ngIf="field.name && field.value">
+                      <td>{{ field.name }}</td>
+                      <td>{{ field.value }}</td>
+                      <td>{{ field.unit }}</td>
+                      <td>
+                        <ng-container *ngIf="field.testFieldRanges.length > 0">
+                          <div *ngFor="let range of field.testFieldRanges">
+                            <ng-container *ngIf="range">
+                              <span>{{ getRangeDescription(range) }}</span><br />
+                            </ng-container>
+                          </div>
+                        </ng-container>
+                      </td>
+                    </ng-container>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mb-5" *ngIf="test.testNotes.length > 0">
+            <h5 class="mb-4">Notes:</h5>
+            <table class="table table-bordered">
+              <thead>
+                <tr class="text-gray-800">
+                  <th>Test Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let note of test.testNotes; let j = index">
+                  <td>
+                    <input type="hidden" [value]="note.testNoteId" />
+                    <input type="text" class="form-control" [(ngModel)]="note.value" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </ng-container>
+
+      <div class="mt-3">
+        <label class="form-label fw-semibold">Notes:</label>
+        <textarea class="form-control" rows="1" placeholder="Test Note"></textarea>
+      </div>
+
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-success">Verify Report</button>
+        <button class="btn btn-outline-success">Save Report</button>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mt-4 mt-lg-0">
+      <!-- Simulated PDF Viewer -->
+      <div class="border rounded overflow-hidden">
+        <iframe [src]="pdfUrl" width="100%" height="500px"></iframe>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Modal Component (moved here for better structure) -->
-<app-add-test-modal
-  *ngIf="showAddTestModal"
+
+
+<!-- <app-add-new-test-modal 
+  *ngIf="showAddNewTestModal"
   [reports]="reports"
-  (close)="onCloseModal()">
+  (close)="onCloseTestModal()">
+</app-add-new-test-modal> -->
+<div *ngIf="showAddNewTestModal">
+
+  <form #testForm="ngForm">
+    <div class="modal fade show" tabindex="-1" style="
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0,0,0,0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1050;">
+
+      <div class="modal-dialog modal-lg" style="
+    width: 95%;
+    max-width: 1800px;
+    margin: auto;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;">
+        <div class="modal-content">
+
+          <div class="modal-header d-flex py-3 pe-4">
+            <h6 class="modal-title modelTestNameTitle fw-bold">Add new test</h6>
+
+            <button type="button" (click)="closeModal()"
+              class="btn btn-icon btn-sm btn-active-light-primary ms-auto idcloseButton" aria-label="Close">
+              <!-- SVG inserted here -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-square"
+                viewBox="0 0 16 16">
+                <path
+                  d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zm-1 1H3a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5z" />
+                <path
+                  d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </button>
+
+          </div>
+          <div class="modal-body">
+            <div class="row mb-4">
+              <div class="col-md-6 fv-row">
+                <label class="required">Test Name</label>
+                <input type="text" class="form-control" placeholder="enter test name" [(ngModel)]="reports.Test.name"
+                  name="testName" id="NewTest_TestName_0__Name" [ngModelOptions]="{standalone: true}" required>
+
+                <input type="hidden" [(ngModel)]="reports.Report.reportId" [ngModelOptions]="{standalone: true}"/>
+
+              </div>
+
+              <div class="col-md-4 fv-row">
+                <label class="required">Test Type</label>
+                <ng-container *ngIf="reports.BloodReportTypes.length>0">
+                  <select class="form-select" [(ngModel)]="reports.Test.testTypeId" name="reports.Test.testTypeId">
+                    <option *ngFor="let type of reports.BloodReportTypes" [value]="type.reportTypeId">
+                      {{ type.name }}
+                    </option>
+                  </select>
+
+                </ng-container>
+              </div>
+
+              <div class="col-md-2 fv-row">
+                <label class="required">Page No.</label>
+                <ng-container *ngIf="reports?.Report?.tests?.[0] as test">
+                  <input type="number" class="form-control" [(ngModel)]="test.pageNo" name="pageNo"
+                    [ngModelOptions]="{standalone: true}" />
+                </ng-container>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-7">
+                <ng-container *ngIf="reports?.Test as test">
+                  <h5 class="mb-4 fw-bold">{{ test.name }}</h5>
+                </ng-container>
+                <table class="table table-bordered" id="TestFieldTable">
+                  <thead>
+                    <tr>
+                      <th>Tests</th>
+                      <th>Result</th>
+                      <th>Unit</th>
+                      <th>Range(Min)</th>
+                      <th>Operator</th>
+                      <th>Range(Max)</th>
+                      <th>Severity</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <ng-container *ngIf="reports.Test.testFields as testFields">
+                      <tr *ngFor="let field of testFields; let i = index" [id]="'tbltr_' + i">
+                        <td style="width:25%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.name"
+                            [ngModelOptions]="{standalone: true}" name="fieldName{{ i }}" required />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.value"
+                            [ngModelOptions]="{standalone: true}" name="value{{ i }}" required />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.unit"
+                            [ngModelOptions]="{standalone: true}" name="unit{{ i }}" />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.range.min"
+                            [ngModelOptions]="{standalone: true}" name="minRange{{ i }}" />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.range.operator"
+                            [ngModelOptions]="{standalone: true}" name="operator{{ i }}" />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.range.max"
+                            [ngModelOptions]="{standalone: true}" name="maxRange{{ i }}" />
+                        </td>
+                        <td style="width:11%">
+                          <input type="text" class="form-control form-control-sm" [(ngModel)]="field.severity"
+                            [ngModelOptions]="{standalone: true}" name="severity{{ i }}" />
+                        </td>
+                        <td style="width:20%">
+                          <button (click)="addEmptyTestField()" class="btn btn-success btn-sm p-1">
+                            <i class="bi bi-plus"></i>
+                          </button>
+                          <button (click)="deleteTestRow(i)" class="btn btn-danger btn-sm p-1">
+                            <i class="bi bi-x"></i>
+                          </button>
+
+                        </td>
+                      </tr>
+                    </ng-container>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="col-md-5">
+                <div class="bg-secondary rounded h-100">
+                  <embed *ngIf="pdfUrl" [src]="pdfUrl" type="application/pdf" width="100%" height="100%" />
+
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group mt-4">
+              <label class="required">Notes</label>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Test Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let note of reports?.Test?.testNotes; let i = index">
+                    <td>
+                      <input type="text" class="form-control" [(ngModel)]="note.value" name="note{{ i }}" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-footer py-4 px-5">
+            <button type="button" class="btn btn-sm btn-light" (click)="closeModal()">Close</button>
+            <button type="button" class="btn btn-sm btn-primary" (click)="addNewTest()">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>
+
+<!-- Modal Component (moved here for better structure) -->
+<app-add-test-modal *ngIf="showAddTestModal" [reports]="reports" (close)="onCloseModal()">
 </app-add-test-modal>

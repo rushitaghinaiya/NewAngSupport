@@ -92,7 +92,9 @@ export class UserListComponent implements OnInit {
   }
 
   FirstVerification(reportId: number, isFirst: boolean): void {
-    const hostURL = 'https://localhost:7050/api/v1/'; // Replace with actual base URL
+    debugger;
+    localStorage.setItem("isFirst",isFirst.toString());
+    const hostURL = 'https://localhost:7050/api/v1/'; 
   debugger;
     this.http.get<boolean>(`${hostURL}Report/VerifyIfReportExistForVerification?ReportId=${reportId}&IsFirst=${isFirst}`)
       .subscribe({
@@ -104,7 +106,6 @@ export class UserListComponent implements OnInit {
                 next: (updated) => {
                   if (updated) {
                     localStorage.setItem("reportId",JSON.stringify(reportId));
-                    localStorage.setItem("isFirst",JSON.stringify(reportId));
                     this.router.navigate(['/report'], {
                       queryParams: { id: reportId, isFirst }
                     });
