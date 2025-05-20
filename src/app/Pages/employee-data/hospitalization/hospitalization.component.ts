@@ -12,7 +12,7 @@ import { AddNewTestModalComponent } from '../add-new-test-modal/add-new-test-mod
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ReportType } from '../models/report.model';
+import { HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 @Component({
   selector: 'app-hospitalization',
@@ -43,8 +43,8 @@ export class HospitalizationComponent {
     isFirstOrPeer: false,
     hospitalizationId: 0,
     hospitalName: '',
-    admissionDate: '',
-    dischargeDate: '',
+    admissionDate: new Date,
+    dischargeDate: new Date,
     doctorName: '',
     chiefComplaint: '',
     diagnosis: '',
@@ -151,7 +151,6 @@ export class HospitalizationComponent {
   saveHospitalization(): void {
     debugger;
     const model = { ...this.HospitalizationReportVM };
-
     // Basic validation
     if (
       !model.hospitalName ||
@@ -162,19 +161,43 @@ export class HospitalizationComponent {
       alert('All * mark fields are mandatory');
       return;
     }
-    model.createdAt = 'system';
-    model.createdOn = new Date();
-    model.createdBy = localStorage.getItem('UserName')?.toString();
+    let hospitalization: HospitalizationVM = {
+      admissionDate: model.admissionDate,
+      dischargeDate: model.dischargeDate,
+      createdAt: 'system',
+      createdOn: new Date(),
+      createdBy: 'rghinaiya',
+      hospitalName: model.hospitalName,
+      doctorName: model.doctorName,
+      chiefComplaint: model.chiefComplaint,
+      diagnosis: model.diagnosis,
+      treatment: model.treatment,
+      doctorCharge: model.doctorCharge,
+      roomCharge: model.roomCharge,
+      medicineCharge: model.medicineCharge,
+      otherCharge: model.otherCharge,
+      totalCharges: model.totalCharges,
+      userId: this.report?.userId ?? 0,
+      hospitalizationId: model.hospitalizationId,
+      hospitalizationMedications: model.hospitalizationMedications,
+      dischargeSummaryReports: []
+    }
+
 
     let hospitalizationReport: HospitalizationReports = {
-      filePath: model.filePath ?? ''
+      filePath: this.report?.filePath ?? ''
     };
-    model.dischargeSummaryReports?.push(hospitalizationReport);
-
+    hospitalization.dischargeSummaryReports?.push(hospitalizationReport);
+    console.log(JSON.stringify(hospitalization));
     const Hurl = this.apiUrl + '/api/v1/Hospitalization/AddHospitalization';
 
-    this.http.post<any>(Hurl, JSON.stringify(model)).subscribe({
+    this.http.post<any>(Hurl, hospitalization, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    }).subscribe({
       next: (res) => {
+        debugger;
         if (res.statusMessage === 'success') {
           let hospitalId = res.responseData;
           let report: Report = {
@@ -192,6 +215,8 @@ export class HospitalizationComponent {
             isVerified: true,
             verifiedOn: new Date().toString() ?? '',
             reportHeaderData: {},
+            filePath: model.filePath ?? '',
+            tests: []
           }
           let isFirst = localStorage.getItem('isFirst')?.toString();
           if (isFirst === 'true') {
@@ -222,12 +247,12 @@ export class HospitalizationComponent {
 
           const url = this.apiUrl + '/api/v1/Report/UpdateReport';
 
-          this.http.get<any>(url).subscribe({
+          this.http.post<any>(url,report).subscribe({
             next: (res) => {
               if (res.statusMessage === 'success') {
-                const updateurl = this.apiUrl + "/api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" +Number(localStorage.getItem('UserId')) + "&IsFirstVerification=" + report.isFirstOrPeer;
+                const updateurl = this.apiUrl + "/api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" + Number(localStorage.getItem('UserId')) + "&IsFirstVerification=" + report.isFirstOrPeer;
 
-                this.http.post<any>(url, JSON.stringify(report)).subscribe({
+                this.http.get<any>(url).subscribe({
                   next: (res) => {
                     if (res === 'success') {
                       alert('Done');

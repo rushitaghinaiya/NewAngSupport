@@ -50,7 +50,7 @@ export interface Report {
   reportTypeId?: number;
   uploadedOn?: string;
   fileName?: string;
-  filePath?: string;
+  filePath: string;
   isValidated?: boolean;
   validatedOn?: string;
   isVerified?: boolean;
@@ -65,7 +65,7 @@ export interface Report {
   patientName: string;
   patientAge: string;
   patientGender?: string;
-  tests?: Test[];
+  tests: Test[];
   verificationStatus?: string;
   doctorName?: string;
   issuedOn: string;

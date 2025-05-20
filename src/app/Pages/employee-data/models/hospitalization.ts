@@ -2,8 +2,8 @@ export interface HospitalizationVM {
   hospitalizationId?: number;
   userId: number;
   hospitalName?: string;
-  admissionDate?: string;
-  dischargeDate?: string;
+  admissionDate?: Date;
+  dischargeDate?: Date;
   doctorName?: string;
   chiefComplaint?: string;
   diagnosis?: string;
