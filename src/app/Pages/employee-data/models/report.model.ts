@@ -45,16 +45,16 @@ export interface Test {
 }
 
 export interface Report {
-  reportId?: number;
+  reportId: number;
   userId: number;
   reportTypeId?: number;
-  uploadedOn?: string;
+  uploadedOn?: Date;
   fileName?: string;
   filePath: string;
   isValidated?: boolean;
-  validatedOn?: string;
+  validatedOn?: Date;
   isVerified?: boolean;
-  verifiedOn?: string;
+  verifiedOn?: Date;
   frzInd?: number;
   labName: string;
   isHiddenFromDoctor?: boolean;

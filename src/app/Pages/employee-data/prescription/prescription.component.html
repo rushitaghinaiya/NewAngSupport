@@ -1,1 +1,140 @@
-<p>prescription works!</p>
+<div class="container mt-4">
+  <h4 class="fw-bold">Verify Report</h4>
+  <div class="row g-3 mt-2 border rounded p-3 bg-white">
+    <div class="row">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Patient Name *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.patientName" readonly />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Patient Telephone *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.patientContactNo"
+          placeholder="enter telephone" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Referred by Doctor *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.doctorName" placeholder="enter name" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Lab Name *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.labName" placeholder="enter lab name" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Issued Date *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.prescriptionDate" readonly />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Branch Name *</label>
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.branchName"
+          placeholder="enter branch name" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Verification Status *</label>
+        <select class="form-select">
+          <option value="1" selected>Un-Verified</option>
+          <option value="2">Verified</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-12 text-end text-danger small">
+      <em>Note: Please validate name before verifying the report.</em>
+    </div>
+  </div>
+
+  <h5 class="mt-2 fw-bold">Detailed Report</h5>
+  <div class="row mt-3 border rounded p-4 bg-white">
+    <div class="col-lg-6">
+
+      <form>
+        <div class="row">
+          <div class="col-md-8 fv-row mb-2">
+            <label class="required fs-6 fw-semibold mb-2">Doctor Name</label>
+            <input type="text" class="form-control" placeholder="enter doctor name" name="doctorName"
+              [ngModelOptions]="{standalone: true}" [(ngModel)]="PrescriptionReportVM.doctorName" />
+          </div>
+          <div class="col-md-4 fv-row mb-2">
+            <label class="fs-6 fw-semibold mb-2">Date</label>
+            <input type="date" class="form-control" [(ngModel)]="PrescriptionReportVM.prescriptionDate"
+              [ngModelOptions]="{standalone: true}" name="prescriptionDate" />
+          </div>
+
+          <div class="col-md-12 fv-row mb-2">
+            <label class="required fs-6 fw-semibold mb-2">Doctor's Email</label>
+            <input type="email" class="form-control" placeholder="enter doctor's email"
+              [ngModelOptions]="{standalone: true}" [(ngModel)]="PrescriptionReportVM.doctorEmail" name="doctorEmail" />
+          </div>
+
+          <div class="col-md-12 fv-row mb-2">
+            <label class="required fs-6 fw-semibold mb-2">Notes & Additional Tests</label>
+            <textarea rows="2" class="form-control" name="notes" [ngModelOptions]="{standalone: true}"
+              [(ngModel)]="PrescriptionReportVM.notes"></textarea>
+          </div>
+
+
+          
+        </div>
+
+
+        <div class="col-md-12 mb-2">
+          <table class="table table-bordered mb-0">
+            <thead>
+              <tr class="text-gray-800">
+                <th>Medicine</th>
+                <th>No. Of Day</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let med of PrescriptionReportVM.prescribedMedications; let i = index">
+                <td style="width:55%">
+                  <select class="form-select form-select-sm" [(ngModel)]="med.medicineId" name="medicineId{{i}}">
+                    <option *ngFor="let m of PrescriptionReportVM.medicineMasters" [value]="m.medicineId">{{
+                      m.medicineName }}</option>
+                  </select>
+                </td>
+                <td style="width:30%">
+                  <input type="text" class="form-control form-control-sm" [(ngModel)]="med.noOfDays"
+                    name="noOfDays{{i}}" />
+                </td>
+                <td style="width:15%">
+                  <button (click)="addMedication(i)" class="btn btn-success btn-sm p-1">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                  <button (click)="removeMedication(i)" class="btn btn-danger btn-sm p-1 ms-1">
+                    <i class="bi bi-x"></i>
+                  </button>
+
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="submit" (click)="SavePrescribeMedicine()" class="btn btn-sm btn-success">Save</button>
+      </form>
+    </div>
+
+    <div class="col-lg-6 mt-4 mt-lg-0">
+      <!-- Simulated PDF Viewer -->
+      <div class="border rounded overflow-hidden">
+        <iframe [src]="pdfUrl" width="100%" height="500px"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- <app-add-new-test-modal 
+  *ngIf="showAddNewTestModal"
+  [reports]="reports"
+  (close)="onCloseTestModal()">
+</app-add-new-test-modal> -->
+
+
+<!-- Modal Component (moved here for better structure) -->
+<!-- <app-add-test-modal *ngIf="showAddTestModal" [reports]="reports" (close)="onCloseModal()">
+</app-add-test-modal> -->

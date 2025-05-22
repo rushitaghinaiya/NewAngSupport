@@ -7,8 +7,6 @@ import { HospitalizationReportVM } from '../models/hospitalization';
 import { HospitalizationMedicationVM } from '../models/hospitalization';
 import { Report } from '../models/report.model';
 import { CommonModule } from '@angular/common';
-import { AddTestModalComponent } from '../add-test-modal/add-test-modal.component';
-import { AddNewTestModalComponent } from '../add-new-test-modal/add-new-test-modal.component'
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -149,7 +147,11 @@ export class HospitalizationComponent {
 
 
   saveHospitalization(): void {
-    debugger;
+    const storedData = localStorage.getItem('userApp');
+    let userdata = [];
+    if (storedData) {
+      userdata = JSON.parse(storedData);
+    }
     const model = { ...this.HospitalizationReportVM };
     // Basic validation
     if (
@@ -188,7 +190,7 @@ export class HospitalizationComponent {
       filePath: this.report?.filePath ?? ''
     };
     hospitalization.dischargeSummaryReports?.push(hospitalizationReport);
-    console.log(JSON.stringify(hospitalization));
+
     const Hurl = this.apiUrl + '/api/v1/Hospitalization/AddHospitalization';
 
     this.http.post<any>(Hurl, hospitalization, {
@@ -197,7 +199,6 @@ export class HospitalizationComponent {
       })
     }).subscribe({
       next: (res) => {
-        debugger;
         if (res.statusMessage === 'success') {
           let hospitalId = res.responseData;
           let report: Report = {
@@ -205,27 +206,28 @@ export class HospitalizationComponent {
             patientContactNo: model.patientContactNo ?? '',
             patientAge: model.patientAge ?? '',
             branchName: model.branchName ?? '',
-            labName: model.labName ?? '',
+            labName: model.hospitalName ?? '',
             reportId: model.reportId ?? 0,
             updatedAt: 'system',
-            updatedOn: new Date(),
-            updatedBy: localStorage.getItem('UserName')?.toString() ?? '',
+            updatedOn: this.report?.uploadedOn ?? new Date(),
+            uploadedOn: model.createdOn,
+            updatedBy: userdata.userName ?? '',
             issuedOn: model.issuedOn ?? '',
             userId: model.userId,
             isVerified: true,
-            verifiedOn: new Date().toString() ?? '',
+            verifiedOn: new Date(),
             reportHeaderData: {},
-            filePath: model.filePath ?? '',
+            filePath: this.report?.filePath ?? '',
             tests: []
           }
           let isFirst = localStorage.getItem('isFirst')?.toString();
           if (isFirst === 'true') {
             report.reportHeaderData.firstReviewer_FirstName = model.patientName;
-            report.reportHeaderData.firstReviewer_Telephone = model.patientContactNo;
+            report.reportHeaderData.firstReviewer_Telephone = userdata.contactNo;
             report.reportHeaderData.firstReviewer_UpdatedOn = new Date();
             report.reportHeaderData.firstReviewer_UpdatedAt = 'System';
-            report.reportHeaderData.firstReviewer_UpdatedBy = localStorage.getItem('UserName')?.toString();
-            report.reportHeaderData.firstReviewer_UserId = Number(localStorage.getItem('UserId'));
+            report.reportHeaderData.firstReviewer_UpdatedBy = userdata.userName;
+            report.reportHeaderData.firstReviewer_UserId = Number(userdata?.userId);
             report.reportHeaderData.reportId = model.reportId;
           }
           else {
@@ -233,30 +235,37 @@ export class HospitalizationComponent {
             report.reportHeaderData.peerReviewer_Telephone = model.patientContactNo;
             report.reportHeaderData.peerReviewer_UpdatedOn = new Date();
             report.reportHeaderData.peerReviewer_UpdatedAt = 'System';
-            report.reportHeaderData.peerReviewer_UpdatedBy = localStorage.getItem('UserName')?.toString();
-            report.reportHeaderData.peerReviewer_UserId = Number(localStorage.getItem('UserId'));
+            report.reportHeaderData.peerReviewer_UpdatedBy = userdata.userName;
+            report.reportHeaderData.peerReviewer_UserId = Number(userdata?.userId);
 
           }
           report.reportTypeId = model.reportTypeId;
           report.reportFromId = model.reportFromId;
           report.reportFrom = 'Hospital';
           report.updatedOn = new Date();
-          report.updatedBy = localStorage.getItem('UserName')?.toString() ?? '';
+          report.updatedBy = userdata.userName ?? '';
           report.updatedAt = 'system';
           report.isFirstOrPeer = isFirst === 'true';
-
           const url = this.apiUrl + '/api/v1/Report/UpdateReport';
 
-          this.http.post<any>(url,report).subscribe({
+          this.http.post<any>(url, report, {
+            headers: new HttpHeaders({
+              'Content-Type': 'application/json'
+            })
+          }).subscribe({
             next: (res) => {
               if (res.statusMessage === 'success') {
-                const updateurl = this.apiUrl + "/api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" + Number(localStorage.getItem('UserId')) + "&IsFirstVerification=" + report.isFirstOrPeer;
+                const updateurl = this.apiUrl + "/api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" + Number(userdata?.userId) + "&IsFirstVerification=" + report.isFirstOrPeer;
 
-                this.http.get<any>(url).subscribe({
+                this.http.get<any>(updateurl).subscribe({
                   next: (res) => {
-                    if (res === 'success') {
-                      alert('Done');
+                    if (res.statusMessage === 'success') {
+                      alert('Hospitalization Saved Successfully');
+                      this.router.navigateByUrl("user-list");
                     }
+                  },
+                  error: (err) => {
+                    console.error(err); // log the error to see what went wrong
                   }
                 });
               }

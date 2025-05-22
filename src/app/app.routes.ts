@@ -4,6 +4,7 @@ import { HomeComponent } from './Pages/employee-data/home/home.component';
 import { UserListComponent } from './Pages/employee-data/user-list/user-list.component';
 import { ReportComponent } from './Pages/employee-data/report/report.component';
 import { HospitalizationComponent } from './Pages/employee-data/hospitalization/hospitalization.component';
+import { PrescriptionComponent } from './Pages/employee-data/prescription/prescription.component';
 
 export const routes: Routes = [
     {
@@ -22,9 +23,10 @@ export const routes: Routes = [
             { path: '', redirectTo: 'user-list', pathMatch: 'full' }, // default
             { path: 'user-list', component: UserListComponent },
             { path: 'report', component: ReportComponent },
-            { path: 'hospitalization',component: HospitalizationComponent}
+            { path: 'hospitalization', component: HospitalizationComponent },
+            { path: 'prescription', component: PrescriptionComponent }
         ]
     },
-    
+
 
 ];
