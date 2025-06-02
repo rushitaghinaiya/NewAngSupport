@@ -8,7 +8,8 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Patient Telephone *</label>
-                <input type="text" class="form-control" [value]="HospitalizationReportVM.patientContactNo" placeholder="enter telephone" />
+                <input type="text" class="form-control" [value]="HospitalizationReportVM.patientContactNo"
+                    placeholder="enter telephone" />
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Referred by Doctor *</label>
@@ -63,31 +64,36 @@
                     </div>
 
                     <div class="col-md-6 mb-2">
-                        <label class="required fs-7 fw-semibold mb-2">Hospital Name<sup style="color:red; font-size: 1em;">*</sup></label>
+                        <label class="required fs-7 fw-semibold mb-2">Hospital Name<sup
+                                style="color:red; font-size: 1em;">*</sup></label>
                         <input type="text" class="form-control" name="hospitalName"
                             [(ngModel)]="HospitalizationReportVM.hospitalName" />
                     </div>
 
                     <div class="col-md-6 mb-2">
-                        <label class="required fs-7 fw-semibold mb-2">Doctor Name<sup style="color:red; font-size: 1em;">*</sup></label>
+                        <label class="required fs-7 fw-semibold mb-2">Doctor Name<sup
+                                style="color:red; font-size: 1em;">*</sup></label>
                         <input type="text" class="form-control" name="doctorName"
                             [(ngModel)]="HospitalizationReportVM.doctorName" />
                     </div>
 
                     <div class="col-md-6 mb-2">
-                        <label class="required fs-7 fw-semibold mb-2">Chief Complaint<sup style="color:red; font-size: 1em;">*</sup></label>
+                        <label class="required fs-7 fw-semibold mb-2">Chief Complaint<sup
+                                style="color:red; font-size: 1em;">*</sup></label>
                         <textarea class="form-control" name="chiefComplaint"
                             [(ngModel)]="HospitalizationReportVM.chiefComplaint" rows="2"></textarea>
                     </div>
 
                     <div class="col-md-6 mb-2">
-                        <label class="required fs-7 fw-semibold mb-2">Diagnosis<sup style="color:red; font-size: 1em;">*</sup></label>
+                        <label class="required fs-7 fw-semibold mb-2">Diagnosis<sup
+                                style="color:red; font-size: 1em;">*</sup></label>
                         <textarea class="form-control" name="diagnosis" [(ngModel)]="HospitalizationReportVM.diagnosis"
                             rows="2"></textarea>
                     </div>
 
                     <div class="col-md-12 mb-2">
-                        <label class="required fs-7 fw-semibold mb-2">Treatment Given<sup style="color:red; font-size: 1em;">*</sup></label>
+                        <label class="required fs-7 fw-semibold mb-2">Treatment Given<sup
+                                style="color:red; font-size: 1em;">*</sup></label>
                         <textarea class="form-control" name="treatment" [(ngModel)]="HospitalizationReportVM.treatment"
                             rows="2"></textarea>
                     </div>
@@ -104,19 +110,26 @@
                             <tbody>
                                 <tr
                                     *ngFor="let med of HospitalizationReportVM.hospitalizationMedications; let i = index">
-                                    <td  style="width:55%">
-                                        <select class="form-select form-select-sm" [(ngModel)]="med.medicineId"
-                                            name="medicineId{{i}}">
-                                            <option *ngFor="let m of HospitalizationReportVM.medicineMasters"
-                                                [value]="m.medicineId">{{
-                                                m.medicineName }}</option>
-                                        </select>
+                                    <td style="width: 55%">
+                                        <mat-form-field class="w-100 h-10" appearance="outline">
+                                            <input matInput placeholder="Select medicine" [matAutocomplete]="auto"
+                                                [ngModelOptions]="{ standalone: true }"
+                                                [ngModel]="getSelectedMedicine(i)"
+                                                (ngModelChange)="onMedicineInputChange($event, i)" />
+
+                                            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayMedicine"
+                                                (optionSelected)="selectMedicine($event.option.value, i)">
+                                                <mat-option *ngFor="let m of filteredMedicines[i]" [value]="m">
+                                                    {{ m.medicineName }}
+                                                </mat-option>
+                                            </mat-autocomplete>
+                                        </mat-form-field>
                                     </td>
-                                    <td  style="width:30%">
+                                    <td style="width:30%">
                                         <input type="text" class="form-control form-control-sm"
                                             [(ngModel)]="med.noOfDays" name="noOfDays{{i}}" />
                                     </td>
-                                    <td  style="width:15%">
+                                    <td style="width:15%">
                                         <button (click)="addMedication(i)" class="btn btn-success btn-sm p-1">
                                             <i class="bi bi-plus"></i>
                                         </button>

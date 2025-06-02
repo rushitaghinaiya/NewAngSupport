@@ -11,11 +11,18 @@ import { HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { PrescriptionReportVM } from '../models/prescription';
 import { PrescriptionVM } from '../models/prescription';
-import { PrescribedMedication } from '../models/prescription';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-prescription',
-  imports: [FormsModule, CommonModule, ReactiveFormsModule],
+  imports: [FormsModule,
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatAutocompleteModule],
   templateUrl: './prescription.component.html',
   styleUrl: './prescription.component.css'
 })
@@ -45,7 +52,13 @@ export class PrescriptionComponent {
       noOfDays: '',
       medicineName: ''
     }],
-    prescribedMedicines: [],
+    prescribedMedicines: [{
+      prescribedMedicationId: 0,
+      medicineId: 0,
+      noOfDays: '',
+      medicineName: '',
+      prescriptionDate: new Date
+    }],
     medicineMasters: []
   };
   PrescriptionVM: PrescriptionVM = {
@@ -55,13 +68,18 @@ export class PrescriptionComponent {
     clinicalNotes: '',
     notes: '',
     diagnosis: '',
-    medicineMasters: []
+    medicineMasters: [],
+    prescribedMedicines: []
   };
   report: Report | null = null;
 
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
+
+  filteredMedicines: any[][] = [];
+
   ngOnInit(): void {
+
     this.route.queryParams.subscribe(params => {
       debugger;
       if (params['report']) {
@@ -84,7 +102,7 @@ export class PrescriptionComponent {
       labName: report.labName,
       branchName: report.branchName,
       filePath: report.filePath.replace(/\\/g, '/'),
-      userId: 0,
+      userId: report.userId,
       reportFromId: 0,
       doctorName: '',
       doctorEmail: '',
@@ -122,7 +140,7 @@ export class PrescriptionComponent {
             // Do something with model like assign to a form or display in template
             this.PrescriptionReportVM = model;
             this.getMedicine();
-            if (this.PrescriptionReportVM.prescribedMedications.length == 0) {
+            if (this.PrescriptionReportVM.prescribedMedicines.length == 0) {
               this.addEmptyMedicine();
             }
           }
@@ -145,6 +163,9 @@ export class PrescriptionComponent {
         debugger;
         if (response?.statusMessage?.toLowerCase() === 'success' && response.responseData) {
           this.PrescriptionReportVM.medicineMasters = response.responseData;
+          this.filteredMedicines = this.PrescriptionReportVM.prescribedMedicines.map(() =>
+            this.PrescriptionReportVM.medicineMasters
+          );
         }
       },
       error: (error) => {
@@ -153,30 +174,32 @@ export class PrescriptionComponent {
     });
   }
   removeMedication(index: number): void {
-    this.PrescriptionReportVM.prescribedMedications.splice(index, 1);
+    this.PrescriptionReportVM.prescribedMedicines.splice(index, 1);
   }
   addMedication(index?: number): void {
-    const current = this.PrescriptionReportVM.prescribedMedications[index ?? 0];
+    const current = this.PrescriptionReportVM.prescribedMedicines[index ?? 0];
     const newMedication = {
-      prescriptionId: current.prescriptionId ?? 0,
+      prescribedMedicationId: 0,
       medicineId: current.medicineId ?? 0,
       noOfDays: '',
-      medicineName: current.medicineName
+      medicineName: current.medicineName,
+      prescriptionDate: this.PrescriptionReportVM.prescriptionDate ?? new Date()
     };
 
     // Insert new row right after the current one
     if (index !== undefined) {
-      this.PrescriptionReportVM.prescribedMedications.splice(index + 1, 0, newMedication);
+      this.PrescriptionReportVM.prescribedMedicines.splice(index + 1, 0, newMedication);
     } else {
-      this.PrescriptionReportVM.prescribedMedications.push(newMedication);
+      this.PrescriptionReportVM.prescribedMedicines.push(newMedication);
     }
   }
   addEmptyMedicine() {
-    this.PrescriptionReportVM.prescribedMedications.push({
+    this.PrescriptionReportVM.prescribedMedicines.push({
+      prescribedMedicationId: 0,
       medicineId: 0,
-      medicineName: '',
       noOfDays: '',
-      prescriptionId: this.PrescriptionReportVM.reportFromId
+      medicineName: '',
+      prescriptionDate: this.PrescriptionReportVM.prescriptionDate ?? new Date()
     });
   }
 
@@ -210,6 +233,7 @@ export class PrescriptionComponent {
       next: (res) => {
         if (res.statusMessage === 'success') {
           let hospitalId = res.responseData;
+          debugger;
           let report: Report = {
             patientName: model.patientName ?? '',
             patientContactNo: model.patientContactNo ?? '',
@@ -217,11 +241,11 @@ export class PrescriptionComponent {
             branchName: model.branchName ?? '',
             labName: model.labName ?? '',
             reportId: model.reportId ?? 0,
-            updatedAt: 'system',
+            updatedAt: localStorage.getItem("ClientInfo")||'system',
             updatedOn: this.report?.uploadedOn ?? new Date(),
             uploadedOn: model.createdOn,
             updatedBy: userdata.userName ?? '',
-            issuedOn: model.issuedOn ?? '',
+            issuedOn:this.report?.issuedOn?? undefined,
             userId: model.userId,
             isVerified: true,
             verifiedOn: new Date(),
@@ -234,7 +258,7 @@ export class PrescriptionComponent {
             report.reportHeaderData.firstReviewer_FirstName = model.patientName;
             report.reportHeaderData.firstReviewer_Telephone = userdata.contactNo;
             report.reportHeaderData.firstReviewer_UpdatedOn = new Date();
-            report.reportHeaderData.firstReviewer_UpdatedAt = 'System';
+            report.reportHeaderData.firstReviewer_UpdatedAt = localStorage.getItem("ClientInfo")||'system';
             report.reportHeaderData.firstReviewer_UpdatedBy = userdata.userName;
             report.reportHeaderData.firstReviewer_UserId = Number(userdata?.userId);
             report.reportHeaderData.reportId = model.reportId;
@@ -243,18 +267,19 @@ export class PrescriptionComponent {
             report.reportHeaderData.peerReviewer_FirstName = model.patientName;
             report.reportHeaderData.peerReviewer_Telephone = model.patientContactNo;
             report.reportHeaderData.peerReviewer_UpdatedOn = new Date();
-            report.reportHeaderData.peerReviewer_UpdatedAt = 'System';
+            report.reportHeaderData.peerReviewer_UpdatedAt = localStorage.getItem("ClientInfo")||'system';
             report.reportHeaderData.peerReviewer_UpdatedBy = userdata.userName;
             report.reportHeaderData.peerReviewer_UserId = Number(userdata?.userId);
 
           }
-          report.reportTypeId = model.prescriptionId;
+          report.reportTypeId = this.report?.reportTypeId;
           report.reportFromId = model.reportFromId;
           report.reportFrom = 'prescription';
           report.updatedOn = new Date();
           report.updatedBy = userdata.userName ?? '';
-          report.updatedAt = 'system';
+          report.updatedAt =localStorage.getItem("ClientInfo")||'system';
           report.isFirstOrPeer = isFirst === 'true';
+          console.log(JSON.stringify(report) )
           const url = this.apiUrl + '/api/v1/Report/UpdateReport';
 
           this.http.post<any>(url, report, {
@@ -269,7 +294,7 @@ export class PrescriptionComponent {
                 this.http.get<any>(updateurl).subscribe({
                   next: (res) => {
                     if (res.statusMessage === 'success') {
-                      alert('Hospitalization Saved Successfully');
+                      alert('Prescription Saved Successfully');
                       this.router.navigateByUrl("user-list");
                     }
                   },
@@ -292,6 +317,42 @@ export class PrescriptionComponent {
         alert('Hospitalization record not added, please try again');
       }
     });
+  }
+
+
+  filterMedicine(searchText: any, i: number) {
+    const term = (searchText || '').toString().toLowerCase();
+    this.filteredMedicines[i] = this.PrescriptionReportVM.medicineMasters.filter(med =>
+      med.medicineName.toLowerCase().includes(term)
+    );
+  }
+  // selectMedicine(selectedName: string, index: number) {
+  //   const selected = this.PrescriptionReportVM.medicineMasters.find(
+  //     m => m.medicineName === selectedName
+  //   );
+  //   if (selected) {
+  //     this.PrescriptionReportVM.prescribedMedicines[index].medicineId = selected.medicineId;
+  //   }
+  // }
+  // Display function
+  displayMedicine(medicine: any): string {
+    return medicine?.medicineName || '';
+  }
+
+  // Returns the selected medicine object based on medicineId
+  getSelectedMedicine(index: number): any {
+    const medicineId = this.PrescriptionReportVM.prescribedMedicines[index]?.medicineId;
+    return this.PrescriptionReportVM.medicineMasters.find(m => m.medicineId === medicineId) || null;
+  }
+
+  // When typing, filter from master list
+  onMedicineInputChange(value: string, index: number): void {
+    this.filterMedicine(value, index); // You already have this method
+  }
+
+  // When selected from dropdown
+  selectMedicine(selectedMedicine: any, index: number): void {
+    this.PrescriptionReportVM.prescribedMedicines[index].medicineId = selectedMedicine.medicineId;
   }
 }
 

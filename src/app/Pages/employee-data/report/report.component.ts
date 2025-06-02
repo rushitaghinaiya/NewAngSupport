@@ -7,17 +7,17 @@ import { Report } from '../models/report.model';
 import { ReportVM } from '../models/report.model';
 import { CommonModule } from '@angular/common';
 import { AddTestModalComponent } from '../add-test-modal/add-test-modal.component';
-import { AddNewTestModalComponent } from '../add-new-test-modal/add-new-test-modal.component'
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ReportType } from '../models/report.model';
 import { Router } from '@angular/router';
-
+import { formatDate } from '@angular/common';
+import { Support } from '../models/support';
 @Component({
   standalone: true,
   selector: 'app-report',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AddTestModalComponent, AddNewTestModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, AddTestModalComponent],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })
@@ -25,6 +25,9 @@ export class ReportComponent implements OnInit {
   Test = {
     name: ''
   };
+  sessionFullName: string = '';
+  clientInfo: string = '';
+  editIndex: number | null = null;
   reportId!: number;
   isFirst!: boolean;
   testData: Test | null = null;
@@ -49,6 +52,9 @@ export class ReportComponent implements OnInit {
     BloodReportTypes: {} as ReportType[],
     OtherReason: ''
   };
+  support :Support= {
+    fullName:'',
+  };
   showAddTestModal = false;
   showAddNewTestModal = false;
   selectedDivId: string = 'divTest_0';
@@ -57,21 +63,30 @@ export class ReportComponent implements OnInit {
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
   ngOnInit(): void {
-    debugger;
+    
     this.route.queryParams.subscribe(params => {
       this.reportId = +params['id'];
       this.isFirst = params['isFirst'] === 'true';
     });
+    
+    const supportData = localStorage.getItem('support');
+   
+    if (supportData) {
+      this.support = JSON.parse(supportData);
+    }
     this.loadReportData();
 
     this.addEmptyTestField();
   }
 
   loadReportData(): void {
+    
     this.http.get(`https://localhost:7050/api/v1/Report/GetReportById?Reportid=${this.reportId}`).subscribe((res: any) => {
       this.reports.Report = res.responseData;
+      if (this.reports?.Report?.tests?.length > 0) {
+        this.reports.Report.selectedTestId = this.reports.Report.tests[0].testId;
+      }
       let action = 'getreport';
-debugger;
       switch (this.reports.Report.reportTypeId) {
         case 1:
           action = 'getprescription';
@@ -80,7 +95,7 @@ debugger;
           action = 'gethospitalization';
           break;
       }
-
+      
       if (action === 'getprescription') {
         this.router.navigate(['/prescription'], { queryParams: { report: JSON.stringify(this.reports.Report) } });
       }
@@ -101,6 +116,7 @@ debugger;
 
 
   addEmptyTestField() {
+    
     this.reports.Test.testFields.push({
       testFieldId: 0,
       testId: 0,
@@ -128,9 +144,55 @@ debugger;
       createdOn: new Date()
     });
   }
+
+  VerifyTest() {
+    
+    const reportVm = this.reports;
+    const isFirstOrPeer = localStorage.getItem("isFirst") === "true";
+    const storedData = localStorage.getItem('userApp');
+    let userdata = [];
+    if (storedData) {
+      userdata = JSON.parse(storedData);
+    }
+    
+    if (reportVm?.Report) {
+      const test: Test = {
+        testId: reportVm.Report.selectedTestId ?? 0,
+        reportId: reportVm.Report.reportId,
+        updatedBy:this.support.fullName || '',
+        updatedOn: new Date(),
+        updatedAt: 'system',
+        isFirst: isFirstOrPeer,
+        userId: userdata.userId,
+        testFields: [],
+        testNotes: []
+      };
+    
+
+    this.http.post<any>('https://localhost:7050/api/v1/Report/VerifyTest', test)
+      .subscribe({
+        next: (response) => {
+          
+          if (response.statusCode === 200 && response.statusMessage === 'success') {
+            alert('Report successfully verified.');
+            //Redirect to homepage
+            this.router.navigateByUrl("user-list")
+          } else {
+            alert('Unable to verify Report. Please try again later.');
+          }
+        },
+        error: (err) => {
+          console.error('API Error:', err);
+          alert('An unexpected error occurred.');
+        }
+      });
+    }
+  }
+
   openAddTestModal(): void {
+    
     const index = Number(this.selectedDivId?.split('_')[1]);
-    const selectedTest = this.report?.tests?.[index];
+    const selectedTest = this.reports?.Report.tests?.[index];
     const testId = selectedTest?.testId;
 
     const apiUrl = `https://localhost:7050/api/v1/Report/GetTestByTestId?TestId=${testId}`; // replace with actual API
@@ -140,7 +202,7 @@ debugger;
       if (this.reports) {
         this.http.get(`https://localhost:7050/api/v1/Report/GetReportById?ReportId=${this.reportId}`).subscribe((res: any) => {
           const reportData = res?.responseData;
-          debugger;
+          
           if (reportData) {
             if (this.reports) {
               this.reports.Report = reportData;
@@ -151,11 +213,11 @@ debugger;
             }
           }
           this.http.get(`https://localhost:7050/api/v1/Report/GetTestField?TestId=${testId}`).subscribe((res: any) => {
-            debugger;
+            
             if (this.reports?.Report?.tests) {
               this.reports.Report.tests[0].testFields = res.responseData;
               this.showAddTestModal = true;  // Open the modal with the test data
-              debugger;
+              
             }
           });
         });
@@ -189,39 +251,68 @@ debugger;
 
   // Add new test
   openAddNewTestModal(): void {
-    debugger;
+    
     this.showAddNewTestModal = true;
   }
   closeModal() {
     this.showAddNewTestModal = false;
   }
-  addRowAfter(index: number) {
-    const newRow: TestField = {
-      testFieldId: 0,
-      testId: 0,
-      name: '',
-      value: '',
-      testValue: 0,
-      unit: '',
-      severity: '',
-      range: {
-        min: '',
-        operator: '',
-        max: ''
-      },
-      colour: '',
-      createdAt: '',
-      createdBy: '',
-      createdOn: new Date(),
-      testFieldRanges: []
-    };
+  addRowAfter(testFieldId: number) {
+  const newRow: TestField = {
+    testFieldId: 0,
+    testId: 0,
+    name: '',
+    value: '',
+    testValue: 0,
+    unit: '',
+    severity: '',
+    range: {
+      min: '',
+      operator: '',
+      max: ''
+    },
+    colour: '',
+    createdAt: '',
+    createdBy: '',
+    createdOn: new Date(),
+    testFieldRanges: []
+  };
 
-    this.reports?.Report.tests[0].testFields.splice(index + 1, 0, newRow);
-  }
+  const tests = this.reports?.Report.tests;
 
-  deleteRow(index: number) {
-    this.reports?.Report.tests[0].testFields.splice(index, 1);
+  if (tests) {
+    for (let test of tests) {
+      const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
+      if (index !== -1) {
+        test.testFields.splice(index + 1, 0, newRow);
+        this.editIndex = index + 1;
+
+        // Force refresh the array if needed by Angular
+        test.testFields = [...test.testFields];
+        break;
+      }
+    }
   }
+}
+
+  enableEdit(index: number) {
+    this.editIndex = index;
+  }
+ deleteRow(testFieldId: number) {
+  debugger;
+  const tests = this.reports?.Report.tests;
+
+  if (tests) {
+    for (let test of tests) {
+      const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
+      if (index !== -1) {
+        test.testFields.splice(index, 1);
+        break; // Exit once deleted
+      }
+    }
+  }
+}
+
 
   deleteTestRow(index: number) {
     this.reports?.Test.testFields.splice(index, 1);
@@ -229,12 +320,12 @@ debugger;
 
 
   addNewTest(): void {
-    debugger;
+    
     try {
       const isFirst = localStorage.getItem('isFirst') === 'true'; // or from a shared service
       const currentDate = new Date();
 
-      const createdBy = localStorage.getItem("FullName") || 'System';
+      const createdBy = this.support.fullName || 'System';
       const createdAt = localStorage.getItem("ClientInfo") || 'Unknown';
 
       // Set common fields
@@ -297,5 +388,96 @@ debugger;
       console.error('Exception:', err);
     }
   }
+  updateTest(): void {
+    debugger;
+    const tid=this.reports.Report.selectedTestId;
+    const apiUrl = 'https://localhost:7050/api/v1/Report/UpdateTest';
+    const isFirst = localStorage.getItem("isFirst") === "true";
+    this.sessionFullName = localStorage.getItem("supportFullName") ?? "";
 
+
+
+    const now = new Date().toISOString();
+    const severityList = [
+      "Normal (for age > 60 years)", "Normal (High for Male)", "normal (Low)",
+      "Normal (Adult Male 21 - 49 Yrs)", "Normal", "Normal/desirable/optimal",
+      "sufficiency", "optimal", "negative risk factor", "normal for age > 60 years",
+      "sufficient", "normal for age > 60", "near optimal", "Normal for age",
+      "Normal for age <= 60 years", "normal/desirable/optimal/negative risk factor",
+      "normal", "Fair Control", "Good Control", "desirable", "near optimal",
+      "non-reactive", "low risk", "Slightly Above Normal", "Normal for Adult Female Pre-Menopause",
+      "Normal (for age group)", "Normal for Male"
+    ];
+
+    const testList = this.reports?.Report?.tests;
+    if (!testList) {
+      console.error("tests is undefined");
+      return;
+    }
+
+    const tests = testList.map(test => {
+      const updatedTestFields = test.testFields.map(field => ({
+        ...field,
+        TestId: test.testId,
+        FrzInd: false,
+        CreatedOn: now,
+        UpdatedOn: now,
+        CreatedBy: this.sessionFullName,
+        UpdatedBy: this.sessionFullName,
+        CreatedAt: this.clientInfo,
+        UpdatedAt: this.clientInfo,
+        Colour: severityList.includes(field.severity) ? 'green' : 'red'
+      }));
+
+      const updatedTestNotes = test.testNotes.map(note => ({
+        ...note,
+        TestId: test.testId,
+        FrzInd: false,
+        CreatedOn: now,
+        UpdatedOn: now,
+        CreatedBy: this.sessionFullName,
+        UpdatedBy: this.sessionFullName,
+        CreatedAt: this.clientInfo,
+        UpdatedAt: this.clientInfo
+      }));
+
+      return {
+        ...test,
+        FrzInd: false,
+        UpdatedOn: now,
+        UpdatedBy: this.sessionFullName,
+        UpdatedAt: this.clientInfo,
+        TestFields: updatedTestFields,
+        TestNotes: updatedTestNotes,
+        IsFirst: isFirst
+      };
+    });
+
+    const ind = tests.findIndex(field => field.testId == tid);
+    const postData = JSON.stringify(tests[ind]);
+
+    this.http.post(apiUrl, postData, {
+      headers: { 'Content-Type': 'application/json' }
+    }).subscribe({
+      next: (response: any) => {
+        
+        if (response.statusMessage === 'success') {
+          alert("Test updated successfully");
+          this.loadReportData();
+        } else {
+          alert("Unable to update test. Please try again.");
+        }
+      },
+      error: (error) => {
+        console.error("Error updating test", error);
+        alert("Server error while updating test.");
+      }
+    });
+    this.editIndex = null;
+
+  }
+
+  editIndexFn(): void {
+    this.editIndex = null;
+  }
 }

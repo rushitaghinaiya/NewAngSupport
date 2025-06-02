@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RouterOutlet],
+  imports: [ RouterOutlet],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })

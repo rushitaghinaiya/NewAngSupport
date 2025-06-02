@@ -11,18 +11,18 @@ export interface PrescriptionVM extends CommonField{
   notes?: string;
   clinicalNotes?: string;
   medicineFoodRelation?: string;
-  prescribedMedicines?: PrescribedMedicineVM[];
+  prescribedMedicines: PrescribedMedicineVM[];
   medicineMasters:MedicineMaster[];
 }
 export interface PrescribedMedicineVM {
   prescribedMedicationId: number;
   medicineId: number;
   noOfDays: string;
-  medicineFoodRelationId: number;
+  medicineFoodRelationId?: number;
   medicineName: string;
-  medicineFoodRelation: string;
+  medicineFoodRelation?: string;
   prescriptionDate: Date;
-  doctorName: string;
+  doctorName?: string;
 }
 export interface Prescription extends CommonField{
   prescriptionId: number;

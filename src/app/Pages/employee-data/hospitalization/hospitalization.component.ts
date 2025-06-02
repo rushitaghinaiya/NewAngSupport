@@ -12,9 +12,17 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 @Component({
   selector: 'app-hospitalization',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatAutocompleteModule
+  ],
   templateUrl: './hospitalization.component.html',
   styleUrl: './hospitalization.component.css'
 })
@@ -52,7 +60,7 @@ export class HospitalizationComponent {
     hospitalizationReports: [],
     xRayMriReports: [],
     dischargeSummaryReports: [],
-    issuedOn: '',
+    issuedOn: undefined,
     reportHeaderData: {
       reportHeaderId: 0,
       reportId: 0,
@@ -76,6 +84,7 @@ export class HospitalizationComponent {
   apiUrl = "https://localhost:7050";
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
+  filteredMedicines: any[][] = [];
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       debugger;
@@ -104,7 +113,8 @@ export class HospitalizationComponent {
       filePath: report.filePath,
       userId: report.userId,
       issuedOn: report.issuedOn,
-      hospitalizationMedications: []
+      hospitalizationMedications: [],
+      medicineMasters: []
     };
     const baseUrl = 'https://staging.themedibank.in/patientfiles/';
     const normalizedPath = report.filePath?.replace(/\\/g, '/') ?? '';
@@ -116,6 +126,9 @@ export class HospitalizationComponent {
         debugger;
         if (response?.statusMessage?.toLowerCase() === 'success' && response.responseData) {
           this.HospitalizationReportVM.medicineMasters = response.responseData;
+          this.filteredMedicines = this.HospitalizationReportVM.hospitalizationMedications.map(() =>
+            this.HospitalizationReportVM.medicineMasters
+          );
         }
       },
       error: (error) => {
@@ -136,6 +149,7 @@ export class HospitalizationComponent {
               ...this.HospitalizationReportVM,
               ...hospitalization // This will add any additional properties from the response
             };
+            this.addEmptyMedicine();
           }
         },
         error: (err) => {
@@ -151,6 +165,11 @@ export class HospitalizationComponent {
     let userdata = [];
     if (storedData) {
       userdata = JSON.parse(storedData);
+    }
+    const supportData = localStorage.getItem('support');
+    let support = [];
+    if (supportData) {
+      support = JSON.parse(supportData);
     }
     const model = { ...this.HospitalizationReportVM };
     // Basic validation
@@ -168,7 +187,7 @@ export class HospitalizationComponent {
       dischargeDate: model.dischargeDate,
       createdAt: 'system',
       createdOn: new Date(),
-      createdBy: 'rghinaiya',
+      createdBy: support.fullName,
       hospitalName: model.hospitalName,
       doctorName: model.doctorName,
       chiefComplaint: model.chiefComplaint,
@@ -211,8 +230,8 @@ export class HospitalizationComponent {
             updatedAt: 'system',
             updatedOn: this.report?.uploadedOn ?? new Date(),
             uploadedOn: model.createdOn,
-            updatedBy: userdata.userName ?? '',
-            issuedOn: model.issuedOn ?? '',
+            updatedBy: support.fullName ?? '',
+            issuedOn: model.issuedOn ?? undefined,
             userId: model.userId,
             isVerified: true,
             verifiedOn: new Date(),
@@ -243,7 +262,7 @@ export class HospitalizationComponent {
           report.reportFromId = model.reportFromId;
           report.reportFrom = 'Hospital';
           report.updatedOn = new Date();
-          report.updatedBy = userdata.userName ?? '';
+          report.updatedBy = support.fullName ?? '';
           report.updatedAt = 'system';
           report.isFirstOrPeer = isFirst === 'true';
           const url = this.apiUrl + '/api/v1/Report/UpdateReport';
@@ -303,5 +322,41 @@ export class HospitalizationComponent {
     } else {
       this.HospitalizationReportVM.hospitalizationMedications.push(newMedication);
     }
+  }
+  addEmptyMedicine() {
+    debugger;
+    this.HospitalizationReportVM?.hospitalizationMedications.push({
+      hospitalizationMedicationId: 0,
+      medicineId: 0,
+      noOfDays: '0',
+      medicineName: '',
+    });
+  }
+  filterMedicine(searchText: any, i: number) {
+    const term = (searchText || '').toString().toLowerCase();
+    this.filteredMedicines[i] = this.HospitalizationReportVM.medicineMasters.filter(med =>
+      med.medicineName.toLowerCase().includes(term)
+    );
+  }
+
+  // Display function
+  displayMedicine(medicine: any): string {
+    return medicine?.medicineName || '';
+  }
+
+  // Returns the selected medicine object based on medicineId
+  getSelectedMedicine(index: number): any {
+    const medicineId = this.HospitalizationReportVM.hospitalizationMedications[index]?.medicineId;
+    return this.HospitalizationReportVM.medicineMasters.find(m => m.medicineId === medicineId) || null;
+  }
+
+  // When typing, filter from master list
+  onMedicineInputChange(value: string, index: number): void {
+    this.filterMedicine(value, index); // You already have this method
+  }
+
+  // When selected from dropdown
+  selectMedicine(selectedMedicine: any, index: number): void {
+    this.HospitalizationReportVM.hospitalizationMedications[index].medicineId = selectedMedicine.medicineId;
   }
 }

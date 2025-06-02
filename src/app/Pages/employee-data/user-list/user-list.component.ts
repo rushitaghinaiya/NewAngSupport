@@ -38,6 +38,7 @@ export class UserListComponent implements OnInit {
     }
     this.http.get("https://localhost:7050/api/v1/Support/GetReportsCount?FirstUserReviewerId=" + this.userId).subscribe((res: any) => {
       this.userList = res.responseData;
+      
       console.log(this.userList);
       const result1 = this.userList.find((item: any) =>
         item.header === 'First Verification' &&
@@ -71,6 +72,7 @@ export class UserListComponent implements OnInit {
 
 
     this.http.get("https://localhost:7050/api/v1/Support/GetReportId?FirstUserReviewerId=" + this.userId).subscribe((res: any) => {
+      
       this.reportList = res.responseData;
       const result1 = this.reportList.find((item: any) =>
         item.question === 'First Verification'
@@ -92,15 +94,15 @@ export class UserListComponent implements OnInit {
   }
 
   FirstVerification(reportId: number, isFirst: boolean): void {
-    debugger;
+    
     localStorage.setItem("isFirst",isFirst.toString());
     const hostURL = 'https://localhost:7050/api/v1/'; 
-  debugger;
+  
     this.http.get<boolean>(`${hostURL}Report/VerifyIfReportExistForVerification?ReportId=${reportId}&IsFirst=${isFirst}`)
       .subscribe({
         next: (exists) => {
           if (exists) {
-            debugger;
+            
             this.http.get<boolean>(`${hostURL}Report/UpdateFirstVerification?ReportId=${reportId}&FirstReviewUserId=${this.userId}&IsFirstVerification=${isFirst}`)
               .subscribe({
                 next: (updated) => {

@@ -47,9 +47,9 @@
     <div class="col-lg-6">
       <div class="mb-2 d-flex align-items-center gap-2">
         <ng-container *ngIf="reports && reports?.Report?.tests && reports.Report.tests.length > 0">
-          <select class="form-select" [(ngModel)]="selectedDivId">
-            <option *ngFor="let test of reports.Report?.tests; let i = index" [id]="'divTest_' + i"
-              [value]="'divTest_' + i">
+          <select class="form-select" [(ngModel)]="reports.Report.selectedTestId">
+            <option *ngFor="let test of reports.Report?.tests; let i = index" [id]="test.testId"
+              [value]="test.testId">
               {{ test.name }}
             </option>
           </select>
@@ -59,16 +59,15 @@
       <div class="d-flex justify-content-between mb-2">
         <div class="d-flex gap-2">
           <button class="btn btn-success btn-sm" (click)="openAddNewTestModal()">Add</button>
-          <button class="btn btn-primary btn-sm" (click)="openAddTestModal()">Edit</button>
+          <!-- <button class="btn btn-primary btn-sm" (click)="openAddTestModal()">Edit</button> -->
         </div>
         <div>
           <button class="btn btn-danger btn-sm">Invalid Report</button>
         </div>
       </div>
-
       <ng-container *ngIf="reports && reports.Report.tests && reports.Report.tests.length > 0">
         <div class="divTestDivs rpt_dtls scroll" *ngFor="let test of reports.Report?.tests; let i = index"
-          [id]="'divTest_' + i" [class.d-none]="selectedDivId !== ('divTest_' + i)">
+          [id]="test.testId" [class.d-none]="reports.Report.selectedTestId != test.testId">
           <div class="mb-10">
             <h6 class="mb-4 fw-bold">
               {{ test.name }}
@@ -76,32 +75,74 @@
 
             <div id="testfields">
               <table class="table table-bordered">
-                <thead>
+                <thead class="table-header">
                   <tr class="text-gray-800">
-                    <th>Tests</th>
+                    <th style="width: 15%;">Tests</th>
                     <th>Result</th>
                     <th>Unit</th>
-                    <th>Reference Range</th>
+                    <th>Range(Min)</th>
+                    <th>Operator</th>
+                    <th>Range(Max)</th>
+                    <th>Severity</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let field of test?.testFields">
-                    <ng-container *ngIf="field.name && field.value">
-                      <td>{{ field.name }}</td>
-                      <td>{{ field.value }}</td>
-                      <td>{{ field.unit }}</td>
-                      <td>
-                        <ng-container *ngIf="field.testFieldRanges.length > 0">
-                          <div *ngFor="let range of field.testFieldRanges">
-                            <ng-container *ngIf="range">
-                              <span>{{ getRangeDescription(range) }}</span><br />
-                            </ng-container>
-                          </div>
-                        </ng-container>
+                  <tr *ngFor="let field of test?.testFields; let i = index">
+                    <ng-container>
+                      <td style="white-space: nowrap" *ngIf="editIndex !== i">{{ field.name }}</td>
+                      <td style="white-space: nowrap" *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.name" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.value }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.value" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.unit }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.unit" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.range.min }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.range.min" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.range.operator }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.range.operator" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.range.max }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.range.max" class="form-control form-control-sm" />
+                      </td>
+
+                      <td *ngIf="editIndex !== i">{{ field.severity }}</td>
+                      <td *ngIf="editIndex === i">
+                        <input [(ngModel)]="field.severity" class="form-control form-control-sm" />
+                      </td>
+
+                      <td style="white-space: nowrap">
+                        <button *ngIf="editIndex !== i" (click)="enableEdit(i)" class="btn btn-primary btn-sm p-1">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button *ngIf="editIndex === i" (click)="editIndexFn()" class="btn btn-primary btn-sm p-1">
+                          <i class="bi bi-check2"></i>
+                        </button>
+                         <button (click)="addRowAfter(field.testFieldId)" class="btn btn-success btn-sm p-1 ms-2">
+                            <i class="bi bi-plus"></i>
+                          </button>
+                        <button (click)="deleteRow(field.testFieldId)" class="btn btn-danger btn-sm p-1 ms-2">
+                          <i class="bi bi-x"></i>
+                        </button>
                       </td>
                     </ng-container>
                   </tr>
                 </tbody>
+
               </table>
             </div>
           </div>
@@ -133,8 +174,8 @@
       </div>
 
       <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-success">Verify Report</button>
-        <button class="btn btn-outline-success">Save Report</button>
+        <button class="btn btn-success" (click)="VerifyTest()">Verify Report</button>
+        <button (click)="updateTest()" class="btn btn-outline-success">Save Report</button>
       </div>
     </div>
 
@@ -202,7 +243,7 @@
                 <input type="text" class="form-control" placeholder="enter test name" [(ngModel)]="reports.Test.name"
                   name="testName" id="NewTest_TestName_0__Name" [ngModelOptions]="{standalone: true}" required>
 
-                <input type="hidden" [(ngModel)]="reports.Report.reportId" [ngModelOptions]="{standalone: true}"/>
+                <input type="hidden" [(ngModel)]="reports.Report.reportId" [ngModelOptions]="{standalone: true}" />
 
               </div>
 

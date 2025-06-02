@@ -58,8 +58,8 @@ export interface HospitalizationReportVM extends HospitalizationVM {
   reportHeaderData?: ReportHeaderData;
   isFirstOrPeer?: boolean;
   filePath?: string;
-  medicineMasters?: MedicineMaster[];
-  issuedOn?: string;
+  medicineMasters: MedicineMaster[];
+  issuedOn?: Date;
 }
 export interface MedicineMaster {
   medicineId: number;

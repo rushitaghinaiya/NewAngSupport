@@ -4,7 +4,7 @@
     <div class="row">
       <div class="col-md-3">
         <label class="form-label fw-semibold">Patient Name *</label>
-        <input type="text" class="form-control" [value]="PrescriptionReportVM.patientName" readonly />
+        <input type="text" class="form-control" [value]="PrescriptionReportVM.patientName" />
       </div>
       <div class="col-md-3">
         <label class="form-label fw-semibold">Patient Telephone *</label>
@@ -73,7 +73,7 @@
           </div>
 
 
-          
+
         </div>
 
 
@@ -87,13 +87,23 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let med of PrescriptionReportVM.prescribedMedications; let i = index">
-                <td style="width:55%">
-                  <select class="form-select form-select-sm" [(ngModel)]="med.medicineId" name="medicineId{{i}}">
-                    <option *ngFor="let m of PrescriptionReportVM.medicineMasters" [value]="m.medicineId">{{
-                      m.medicineName }}</option>
-                  </select>
+              <tr *ngFor="let med of PrescriptionReportVM.prescribedMedicines; let i = index">
+
+                <td style="width: 55%">
+                  <mat-form-field class="w-100 h-10" appearance="outline">
+                    <input matInput placeholder="Select medicine" [matAutocomplete]="auto"
+                      [ngModelOptions]="{ standalone: true }" [ngModel]="getSelectedMedicine(i)"
+                      (ngModelChange)="onMedicineInputChange($event, i)" />
+
+                    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayMedicine"
+                      (optionSelected)="selectMedicine($event.option.value, i)">
+                      <mat-option *ngFor="let m of filteredMedicines[i]" [value]="m">
+                        {{ m.medicineName }}
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
                 </td>
+
                 <td style="width:30%">
                   <input type="text" class="form-control form-control-sm" [(ngModel)]="med.noOfDays"
                     name="noOfDays{{i}}" />

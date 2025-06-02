@@ -30,7 +30,7 @@ export class LoginComponent {
   
 
   OnLogin() {
-    debugger;
+    
     this.http.post("https://localhost:7050/api/v1/support/SupportLogin", this.loginObj).subscribe((res: any) => {
       debugger
       localStorage.setItem("userApp",JSON.stringify(res.responseData));
@@ -39,8 +39,8 @@ export class LoginComponent {
         this.http.get(`https://localhost:7050/api/v1/Support/GetSupportByUserId?UserId=${res.responseData.userId}`).subscribe((res: any) => {
           debugger;
           if (res.responseData) {
-            this.support=res.responseData.firstname;
-            localStorage.setItem("supportFullName",res.responseData.firstname);
+            this.support=res.responseData;
+            localStorage.setItem("support",JSON.stringify(res.responseData) );
           }
         });
         this.router.navigateByUrl("user-list")
@@ -49,7 +49,7 @@ export class LoginComponent {
         alert(res.statusMessage);
       }
     }, (error: any) => {
-      debugger;
+      
       const errorBody = error.error;
       console.log("Custom Error Message:", errorBody.statusMessage);
       alert("Error: " + errorBody.statusMessage);

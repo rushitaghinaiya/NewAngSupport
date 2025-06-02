@@ -32,16 +32,20 @@ export interface Test {
   userId: number;
   testId: number;
   reportId: number;
-  name: string;
-  testTypeId: number;
+  name?: string;
+  testTypeId?: number;
   testFields: TestField[];
   testNotes: TestNote[];
-  type: string;
-  pageNo: number;
-  notes: string;
-  createdOn: Date;
-  createdBy: string;
-  createdAt: string;
+  type?: string;
+  pageNo?: number;
+  notes?: string;
+  createdOn?: Date;
+  createdBy?: string;
+  createdAt?: string;
+   updatedBy:string;
+  updatedAt:string;
+  updatedOn:Date;
+  isFirst:boolean;
 }
 
 export interface Report {
@@ -68,7 +72,7 @@ export interface Report {
   tests: Test[];
   verificationStatus?: string;
   doctorName?: string;
-  issuedOn: string;
+  issuedOn?: Date;
   reportType?: string;
   selectedTestId?: number;
   supportUserType?:SupportUserType;
