@@ -8,27 +8,27 @@
       </div>
       <div class="col-md-3">
         <label class="form-label fw-semibold">Patient Telephone *</label>
-        <input type="text" class="form-control" placeholder="enter telephone" />
+        <input type="text" class="form-control" placeholder="Enter telephone" />
       </div>
       <div class="col-md-3">
         <label class="form-label fw-semibold">Referred by Doctor *</label>
-        <input type="text" class="form-control" placeholder="enter name" />
+        <input type="text" class="form-control" placeholder="Enter Doctor name" />
       </div>
       <div class="col-md-3">
         <label class="form-label fw-semibold">Lab Name *</label>
-        <input type="text" class="form-control" placeholder="enter lab name" />
+        <input type="text" class="form-control" placeholder="Enter lab name" />
       </div>
     </div>
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label fw-semibold">Issued Date *</label>
         <input type="text" class="form-control" [value]="reports.Report.issuedOn" readonly />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label fw-semibold">Branch Name *</label>
-        <input type="text" class="form-control" [value]="report?.branchName" placeholder="enter branch name" />
+        <input type="text" class="form-control" [value]="report?.branchName" placeholder="Enter branch name" />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label fw-semibold">Verification Status *</label>
         <select class="form-select" [value]="report?.verificationStatus">
           <option selected>Un-Verified</option>
