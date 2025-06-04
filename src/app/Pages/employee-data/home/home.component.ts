@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
+  isSidebarOpen = true;
   userList: any[] = [];
   reportList: any[] = [];
   private userId: number | null = null;
@@ -31,6 +32,13 @@ export class HomeComponent implements OnInit {
     localStorage.removeItem("userApp");
     this.router.navigateByUrl("/login")
 
+  }
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar() {
+    this.isSidebarOpen = false;
   }
   
   

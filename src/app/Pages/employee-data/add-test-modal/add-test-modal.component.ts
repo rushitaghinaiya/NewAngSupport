@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { API_BASE_URL } from '../../../config/constants';
 
 @Component({
   standalone: true,
@@ -15,6 +16,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
   styleUrl: './add-test-modal.component.css'
 })
 export class AddTestModalComponent {
+  private baseUrl = API_BASE_URL;
   sessionFullName: string = '';
   clientInfo: string = '';
   test: any = {
@@ -53,7 +55,7 @@ export class AddTestModalComponent {
 
   updateTest(): void {
     debugger;
-    const apiUrl = 'https://localhost:7050/api/v1/Report/UpdateTest';
+    const apiUrl = `${this.baseUrl}api/v1/Report/UpdateTest`;
     const isFirst = localStorage.getItem("isFirst") === "true";
     this.sessionFullName = localStorage.getItem("supportFullName") ?? "";
 

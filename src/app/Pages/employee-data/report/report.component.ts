@@ -12,19 +12,25 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ReportType } from '../models/report.model';
 import { Router } from '@angular/router';
-import { formatDate } from '@angular/common';
+import { API_BASE_URL, VirtualDirectoryUrl } from '../../../config/constants';
 import { Support } from '../models/support';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 @Component({
   standalone: true,
   selector: 'app-report',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, AddTestModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })
 export class ReportComponent implements OnInit {
+  private baseUrl = API_BASE_URL;
+  private fileUrl = VirtualDirectoryUrl;
   Test = {
     name: ''
   };
+  isVerifyDisabled = false;
+  isNoteDisabled = true;
   sessionFullName: string = '';
   clientInfo: string = '';
   editIndex: number | null = null;
@@ -52,25 +58,43 @@ export class ReportComponent implements OnInit {
     BloodReportTypes: {} as ReportType[],
     OtherReason: ''
   };
-  support :Support= {
-    fullName:'',
+  support: Support = {
+    fullName: '',
   };
   showAddTestModal = false;
   showAddNewTestModal = false;
   selectedDivId: string = 'divTest_0';
   pdfUrl!: SafeResourceUrl;
+  filteredTestNames: any[] = [];
+  showSuggestions = false;
 
+  private testNameInput$ = new Subject<string>();
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
   ngOnInit(): void {
-    
+
     this.route.queryParams.subscribe(params => {
       this.reportId = +params['id'];
       this.isFirst = params['isFirst'] === 'true';
+
+      this.testNameInput$
+        .pipe(
+          debounceTime(300),
+          distinctUntilChanged(),
+          switchMap(searchTerm => this.getTestSuggestions(searchTerm))
+        )
+        .subscribe((res: any) => {
+          debugger;
+          if (res.statusMessage=="success") {
+            this.filteredTestNames = res.responseData;
+          } else {
+            this.filteredTestNames = [];
+          }
+        });
     });
-    
+
     const supportData = localStorage.getItem('support');
-   
+
     if (supportData) {
       this.support = JSON.parse(supportData);
     }
@@ -80,8 +104,8 @@ export class ReportComponent implements OnInit {
   }
 
   loadReportData(): void {
-    
-    this.http.get(`https://localhost:7050/api/v1/Report/GetReportById?Reportid=${this.reportId}`).subscribe((res: any) => {
+
+    this.http.get(`${this.baseUrl}api/v1/Report/GetReportById?Reportid=${this.reportId}`).subscribe((res: any) => {
       this.reports.Report = res.responseData;
       if (this.reports?.Report?.tests?.length > 0) {
         this.reports.Report.selectedTestId = this.reports.Report.tests[0].testId;
@@ -95,28 +119,27 @@ export class ReportComponent implements OnInit {
           action = 'gethospitalization';
           break;
       }
-      
+
       if (action === 'getprescription') {
         this.router.navigate(['/prescription'], { queryParams: { report: JSON.stringify(this.reports.Report) } });
       }
       if (action === 'gethospitalization') {
         this.router.navigate(['/hospitalization'], { queryParams: { report: JSON.stringify(this.reports.Report) } });
       }
-      const baseUrl = 'https://staging.themedibank.in/patientfiles/';
       const normalizedPath = this.reports.Report?.filePath.replace(/\\/g, '/');
-      const fullPath = baseUrl + normalizedPath;
+      const fullPath = this.fileUrl + normalizedPath;
 
       this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPath);
     });
 
-    this.http.get(`https://localhost:7050/api/v1/Report/GetReportsType`).subscribe((res: any) => {
+    this.http.get(`${this.baseUrl}api/v1/Report/GetReportsType`).subscribe((res: any) => {
       this.reports.BloodReportTypes = res.responseData;
     });
   }
 
 
   addEmptyTestField() {
-    
+
     this.reports.Test.testFields.push({
       testFieldId: 0,
       testId: 0,
@@ -146,7 +169,7 @@ export class ReportComponent implements OnInit {
   }
 
   VerifyTest() {
-    
+
     const reportVm = this.reports;
     const isFirstOrPeer = localStorage.getItem("isFirst") === "true";
     const storedData = localStorage.getItem('userApp');
@@ -154,12 +177,12 @@ export class ReportComponent implements OnInit {
     if (storedData) {
       userdata = JSON.parse(storedData);
     }
-    
+
     if (reportVm?.Report) {
       const test: Test = {
         testId: reportVm.Report.selectedTestId ?? 0,
         reportId: reportVm.Report.reportId,
-        updatedBy:this.support.fullName || '',
+        updatedBy: this.support.fullName || '',
         updatedOn: new Date(),
         updatedAt: 'system',
         isFirst: isFirstOrPeer,
@@ -167,42 +190,42 @@ export class ReportComponent implements OnInit {
         testFields: [],
         testNotes: []
       };
-    
 
-    this.http.post<any>('https://localhost:7050/api/v1/Report/VerifyTest', test)
-      .subscribe({
-        next: (response) => {
-          
-          if (response.statusCode === 200 && response.statusMessage === 'success') {
-            alert('Report successfully verified.');
-            //Redirect to homepage
-            this.router.navigateByUrl("user-list")
-          } else {
-            alert('Unable to verify Report. Please try again later.');
+
+      this.http.post<any>(`${this.baseUrl}api/v1/Report/VerifyTest`, test)
+        .subscribe({
+          next: (response) => {
+
+            if (response.statusCode === 200 && response.statusMessage === 'success') {
+              alert('Report successfully verified.');
+              //Redirect to homepage
+              this.router.navigateByUrl("user-list")
+            } else {
+              alert('Unable to verify Report. Please try again later.');
+            }
+          },
+          error: (err) => {
+            console.error('API Error:', err);
+            alert('An unexpected error occurred.');
           }
-        },
-        error: (err) => {
-          console.error('API Error:', err);
-          alert('An unexpected error occurred.');
-        }
-      });
+        });
     }
   }
 
   openAddTestModal(): void {
-    
+
     const index = Number(this.selectedDivId?.split('_')[1]);
     const selectedTest = this.reports?.Report.tests?.[index];
     const testId = selectedTest?.testId;
 
-    const apiUrl = `https://localhost:7050/api/v1/Report/GetTestByTestId?TestId=${testId}`; // replace with actual API
+    const apiUrl = `${this.baseUrl}api/v1/Report/GetTestByTestId?TestId=${testId}`; // replace with actual API
     this.http.get(apiUrl).subscribe((res: any) => {
       this.reports ??= {} as ReportVM;
       this.reports.Test = res?.responseData;
       if (this.reports) {
-        this.http.get(`https://localhost:7050/api/v1/Report/GetReportById?ReportId=${this.reportId}`).subscribe((res: any) => {
+        this.http.get(`${this.baseUrl}api/v1/Report/GetReportById?ReportId=${this.reportId}`).subscribe((res: any) => {
           const reportData = res?.responseData;
-          
+
           if (reportData) {
             if (this.reports) {
               this.reports.Report = reportData;
@@ -212,12 +235,12 @@ export class ReportComponent implements OnInit {
               this.reports.Report.tests.push(this.reports.Test);
             }
           }
-          this.http.get(`https://localhost:7050/api/v1/Report/GetTestField?TestId=${testId}`).subscribe((res: any) => {
-            
+          this.http.get(`${this.baseUrl}api/v1/Report/GetTestField?TestId=${testId}`).subscribe((res: any) => {
+
             if (this.reports?.Report?.tests) {
               this.reports.Report.tests[0].testFields = res.responseData;
               this.showAddTestModal = true;  // Open the modal with the test data
-              
+
             }
           });
         });
@@ -251,67 +274,69 @@ export class ReportComponent implements OnInit {
 
   // Add new test
   openAddNewTestModal(): void {
-    
+
     this.showAddNewTestModal = true;
   }
   closeModal() {
     this.showAddNewTestModal = false;
   }
   addRowAfter(testFieldId: number) {
-  const newRow: TestField = {
-    testFieldId: 0,
-    testId: 0,
-    name: '',
-    value: '',
-    testValue: 0,
-    unit: '',
-    severity: '',
-    range: {
-      min: '',
-      operator: '',
-      max: ''
-    },
-    colour: '',
-    createdAt: '',
-    createdBy: '',
-    createdOn: new Date(),
-    testFieldRanges: []
-  };
+    this.disableVerify();
+    const newRow: TestField = {
+      testFieldId: 0,
+      testId: 0,
+      name: '',
+      value: '',
+      testValue: 0,
+      unit: '',
+      severity: '',
+      range: {
+        min: '',
+        operator: '',
+        max: ''
+      },
+      colour: '',
+      createdAt: '',
+      createdBy: '',
+      createdOn: new Date(),
+      testFieldRanges: []
+    };
 
-  const tests = this.reports?.Report.tests;
+    const tests = this.reports?.Report.tests;
 
-  if (tests) {
-    for (let test of tests) {
-      const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
-      if (index !== -1) {
-        test.testFields.splice(index + 1, 0, newRow);
-        this.editIndex = index + 1;
+    if (tests) {
+      for (let test of tests) {
+        const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
+        if (index !== -1) {
+          test.testFields.splice(index + 1, 0, newRow);
+          this.editIndex = index + 1;
 
-        // Force refresh the array if needed by Angular
-        test.testFields = [...test.testFields];
-        break;
+          // Force refresh the array if needed by Angular
+          test.testFields = [...test.testFields];
+          break;
+        }
       }
     }
   }
-}
 
   enableEdit(index: number) {
     this.editIndex = index;
+    this.disableVerify();
   }
- deleteRow(testFieldId: number) {
-  debugger;
-  const tests = this.reports?.Report.tests;
+  deleteRow(testFieldId: number) {
+    this.disableVerify();
+    const tests = this.reports?.Report.tests;
 
-  if (tests) {
-    for (let test of tests) {
-      const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
-      if (index !== -1) {
-        test.testFields.splice(index, 1);
-        break; // Exit once deleted
+    if (tests) {
+      for (let test of tests) {
+        const index = test.testFields.findIndex(field => field.testFieldId === testFieldId);
+        if (index !== -1) {
+          test.testFields.splice(index, 1);
+          break; // Exit once deleted
+        }
       }
     }
   }
-}
 
 
   deleteTestRow(index: number) {
@@ -320,7 +345,7 @@ export class ReportComponent implements OnInit {
 
 
   addNewTest(): void {
-    
+
     try {
       const isFirst = localStorage.getItem('isFirst') === 'true'; // or from a shared service
       const currentDate = new Date();
@@ -367,7 +392,7 @@ export class ReportComponent implements OnInit {
       };
       console.log(this.report);
       // API call
-      this.http.post<any>('https://localhost:7050/api/v1/Report/SaveTestReports', this.report)
+      this.http.post<any>(`${this.baseUrl}api/v1/Report/SaveTestReports`, this.report)
         .subscribe({
           next: (response) => {
             if (response.statusCode === 200 && response.statusMessage === 'success') {
@@ -389,9 +414,9 @@ export class ReportComponent implements OnInit {
     }
   }
   updateTest(): void {
-    debugger;
-    const tid=this.reports.Report.selectedTestId;
-    const apiUrl = 'https://localhost:7050/api/v1/Report/UpdateTest';
+
+    const tid = this.reports.Report.selectedTestId;
+    const apiUrl = `${this.baseUrl}api/v1/Report/UpdateTest`;
     const isFirst = localStorage.getItem("isFirst") === "true";
     this.sessionFullName = localStorage.getItem("supportFullName") ?? "";
 
@@ -460,7 +485,7 @@ export class ReportComponent implements OnInit {
       headers: { 'Content-Type': 'application/json' }
     }).subscribe({
       next: (response: any) => {
-        
+
         if (response.statusMessage === 'success') {
           alert("Test updated successfully");
           this.loadReportData();
@@ -474,10 +499,49 @@ export class ReportComponent implements OnInit {
       }
     });
     this.editIndex = null;
-
+    this.enableVerify();
   }
 
   editIndexFn(): void {
     this.editIndex = null;
+  }
+
+  disableVerify() {
+    this.isVerifyDisabled = true;
+    this.isNoteDisabled = false;
+  }
+
+  enableVerify() {
+    this.isVerifyDisabled = false;
+    this.isNoteDisabled = true;
+  }
+
+
+
+
+  onTestNameInput() {
+    const searchTerm = this.reports?.Test?.name ?? ''; // fallback to empty string
+    if (searchTerm.length > 2) {  // Optional: skip short searches
+      this.testNameInput$.next(searchTerm);
+    } else {
+      this.filteredTestNames = [];
+    }
+  }
+
+  getTestSuggestions(searchTerm: string) {
+    const apiUrl = `${this.baseUrl}api/v1/Report/GetTestNamePatternLookup?searchTerm=${searchTerm}`;
+    return this.http.get(apiUrl);
+  }
+
+  selectSuggestion(suggestion: any) {
+    this.reports.Test.name = suggestion.description;
+    this.filteredTestNames = [];
+    this.showSuggestions = false;
+  }
+
+  hideSuggestions() {
+    setTimeout(() => {
+      this.showSuggestions = false;
+    }, 200);
   }
 }

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit,inject } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { API_BASE_URL } from '../../../config/constants';
 
 @Component({
   selector: 'app-user-list',
@@ -9,6 +10,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
   styleUrl: './user-list.component.css'
 })
 export class UserListComponent implements OnInit {
+  private baseUrl = API_BASE_URL;
   userList: any[] = [];
   reportList: any[] = [];
   private userId: number | null = null;
@@ -36,7 +38,7 @@ export class UserListComponent implements OnInit {
       const userData = JSON.parse(storedData);
        this.userId = userData.userId;
     }
-    this.http.get("https://localhost:7050/api/v1/Support/GetReportsCount?FirstUserReviewerId=" + this.userId).subscribe((res: any) => {
+    this.http.get(`${this.baseUrl}api/v1/Support/GetReportsCount?FirstUserReviewerId=` + this.userId).subscribe((res: any) => {
       this.userList = res.responseData;
       
       console.log(this.userList);
@@ -71,7 +73,7 @@ export class UserListComponent implements OnInit {
     })
 
 
-    this.http.get("https://localhost:7050/api/v1/Support/GetReportId?FirstUserReviewerId=" + this.userId).subscribe((res: any) => {
+    this.http.get(`${this.baseUrl}api/v1/Support/GetReportId?FirstUserReviewerId=` + this.userId).subscribe((res: any) => {
       
       this.reportList = res.responseData;
       const result1 = this.reportList.find((item: any) =>
@@ -96,14 +98,13 @@ export class UserListComponent implements OnInit {
   FirstVerification(reportId: number, isFirst: boolean): void {
     
     localStorage.setItem("isFirst",isFirst.toString());
-    const hostURL = 'https://localhost:7050/api/v1/'; 
   
-    this.http.get<boolean>(`${hostURL}Report/VerifyIfReportExistForVerification?ReportId=${reportId}&IsFirst=${isFirst}`)
+    this.http.get<boolean>(`${this.baseUrl}api/v1/Report/VerifyIfReportExistForVerification?ReportId=${reportId}&IsFirst=${isFirst}`)
       .subscribe({
         next: (exists) => {
           if (exists) {
             
-            this.http.get<boolean>(`${hostURL}Report/UpdateFirstVerification?ReportId=${reportId}&FirstReviewUserId=${this.userId}&IsFirstVerification=${isFirst}`)
+            this.http.get<boolean>(`${this.baseUrl}api/v1/Report/UpdateFirstVerification?ReportId=${reportId}&FirstReviewUserId=${this.userId}&IsFirstVerification=${isFirst}`)
               .subscribe({
                 next: (updated) => {
                   if (updated) {

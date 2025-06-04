@@ -14,7 +14,7 @@ import { PrescriptionVM } from '../models/prescription';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-
+import { API_BASE_URL ,VirtualDirectoryUrl} from '../../../config/constants';
 @Component({
   selector: 'app-prescription',
   imports: [FormsModule,
@@ -28,7 +28,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 })
 export class PrescriptionComponent {
   pdfUrl!: SafeResourceUrl;
-  apiUrl = "https://localhost:7050";
+  apiUrl = API_BASE_URL;
+  fileUrl=VirtualDirectoryUrl;
   PrescriptionReportVM: PrescriptionReportVM = {
     patientName: '',
     patientContactNo: '',
@@ -116,9 +117,8 @@ export class PrescriptionComponent {
       medicineMasters: []
     };
 
-    const baseUrl = 'https://staging.themedibank.in/patientfiles/';
     const normalizedPath = report.filePath?.replace(/\\/g, '/') ?? '';
-    const fullPath = baseUrl + normalizedPath;
+    const fullPath = this.fileUrl + normalizedPath;
 
     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPath);
     if (report) {
@@ -158,7 +158,7 @@ export class PrescriptionComponent {
 
   }
   getMedicine() {
-    this.http.get<any>(`https://localhost:7050/api/v1/Hospitalization/GetMedicineMaster`).subscribe({
+    this.http.get<any>(`${this.apiUrl}api/v1/Hospitalization/GetMedicineMaster`).subscribe({
       next: (response: any) => {
         debugger;
         if (response?.statusMessage?.toLowerCase() === 'success' && response.responseData) {
@@ -326,15 +326,7 @@ export class PrescriptionComponent {
       med.medicineName.toLowerCase().includes(term)
     );
   }
-  // selectMedicine(selectedName: string, index: number) {
-  //   const selected = this.PrescriptionReportVM.medicineMasters.find(
-  //     m => m.medicineName === selectedName
-  //   );
-  //   if (selected) {
-  //     this.PrescriptionReportVM.prescribedMedicines[index].medicineId = selected.medicineId;
-  //   }
-  // }
-  // Display function
+  
   displayMedicine(medicine: any): string {
     return medicine?.medicineName || '';
   }

@@ -1,57 +1,80 @@
 <div class="wrapper">
+  <!-- Sidebar Toggle Button -->
+
   <!-- Sidebar  -->
-  <nav id="sidebar">
-    <div class="sidebar-header d-flex align-items-center justify-content-center mb-3 sticky-top">
+  <nav id="sidebar" [class.active]="!isSidebarOpen">
+    <div [class.d-none]="!isSidebarOpen"
+      class="sidebar-header d-flex align-items-center justify-content-center mb-3 sticky-top">
       <img src="logo/Logo-Horizontal.png" alt="Logo" class="sidebar-logo" />
     </div>
+    <div class="sidebar-header-min d-flex align-items-center justify-content-center mb-3 sticky-top"
+      [class.d-none]="isSidebarOpen">
+      <img src="logo/favicon.ico" alt="logo" class="sidebar-logo-min" />
+    </div>
+    <ul class="list-unstyled" [class.d-none]="!isSidebarOpen">
+      <li>
+        <a href="#">
+          <i class="bi bi-speedometer2 me-2"></i>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="bi bi-telephone-fill me-2"></i>
+          Contact
+        </a>
+      </li>
+    </ul>
 
-      <ul class="list-unstyled">
-        <li>
-          <a href="#">
-            <i class="bi bi-speedometer2 me-2"></i>
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bi bi-telephone-fill me-2"></i>
-            Contact
-          </a>
-        </li>
-      </ul>
+    <ul class="list-unstyled" [class.d-none]="isSidebarOpen">
+      <li>
+        <a href="#" class="d-flex justify-content-center align-items-center p-3">
+          <i class="bi bi-speedometer2 me-2"></i>
+          
+        </a>
+      </li>
+      <li>
+        <a href="#" class="d-flex justify-content-center align-items-center p-3">
+          <i class="bi bi-telephone-fill me-2"></i>
+          
+        </a>
+      </li>
+    </ul>
 
-      
   </nav>
 
   <!-- Page Content  -->
   <div id="content">
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-0 sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-0 sticky-top" style="height: 65px;">
       <div class="container-fluid">
-        
+
         <!-- Other navbar items can go here -->
-    
+        <div>
+          <button class="btn m-2 " (click)="toggleSidebar()">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
         <!-- SignOut button aligned to the right -->
         <div class="ms-auto" id="navbarSupportedContent">
-          <button  (click)="logout()" class="button align-items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke-width="1.5"
-                 stroke="currentColor" class="w-6 h-6" width="24" height="24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+
+          <button (click)="logout()" class="button align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+              stroke="currentColor" class="w-6 h-6" width="24" height="24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
             </svg>
             <div class="text">SignOut</div>
           </button>
         </div>
-    
+
       </div>
     </nav>
-    
-      <div class="container py-1">
-        <router-outlet></router-outlet>
-      </div>
-      
-     
-       </div>
+
+    <div class="container py-1">
+      <router-outlet></router-outlet>
+    </div>
+
+
+  </div>
 </div>
 <!-- <router-outlet></router-outlet> -->

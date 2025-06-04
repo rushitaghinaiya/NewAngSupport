@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { API_BASE_URL,VirtualDirectoryUrl } from '../../../config/constants';
 @Component({
   selector: 'app-hospitalization',
   imports: [FormsModule,
@@ -27,6 +28,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
   styleUrl: './hospitalization.component.css'
 })
 export class HospitalizationComponent {
+  private baseUrl = API_BASE_URL;
+  fileUrl=VirtualDirectoryUrl;
   pdfUrl!: SafeResourceUrl;
   hospitalizationMedicaine: HospitalizationMedicationVM | null = null;
   hospitalizationVM: HospitalizationVM | null = null;
@@ -81,7 +84,7 @@ export class HospitalizationComponent {
       frzInd: false
     }
   };
-  apiUrl = "https://localhost:7050";
+ 
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
   filteredMedicines: any[][] = [];
@@ -116,12 +119,11 @@ export class HospitalizationComponent {
       hospitalizationMedications: [],
       medicineMasters: []
     };
-    const baseUrl = 'https://staging.themedibank.in/patientfiles/';
     const normalizedPath = report.filePath?.replace(/\\/g, '/') ?? '';
-    const fullPath = baseUrl + normalizedPath;
+    const fullPath = this.fileUrl + normalizedPath;
 
     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPath);
-    this.http.get<any>(`https://localhost:7050/api/v1/Hospitalization/GetMedicineMaster`).subscribe({
+    this.http.get<any>(`${this.baseUrl}api/v1/Hospitalization/GetMedicineMaster`).subscribe({
       next: (response: any) => {
         debugger;
         if (response?.statusMessage?.toLowerCase() === 'success' && response.responseData) {
@@ -137,7 +139,7 @@ export class HospitalizationComponent {
     });
 
     if (report.userId && report.reportFromId) {
-      const url = `${this.apiUrl}/api/v1/Hospitalization/GetHospitalizationDetail/${report.userId}/${report.reportFromId}`;
+      const url = `${this.baseUrl}api/v1/Hospitalization/GetHospitalizationDetail/${report.userId}/${report.reportFromId}`;
       this.http.get<any>(url).subscribe({
         next: (res) => {
           debugger;
@@ -210,7 +212,7 @@ export class HospitalizationComponent {
     };
     hospitalization.dischargeSummaryReports?.push(hospitalizationReport);
 
-    const Hurl = this.apiUrl + '/api/v1/Hospitalization/AddHospitalization';
+    const Hurl = this.baseUrl + 'api/v1/Hospitalization/AddHospitalization';
 
     this.http.post<any>(Hurl, hospitalization, {
       headers: new HttpHeaders({
@@ -265,7 +267,7 @@ export class HospitalizationComponent {
           report.updatedBy = support.fullName ?? '';
           report.updatedAt = 'system';
           report.isFirstOrPeer = isFirst === 'true';
-          const url = this.apiUrl + '/api/v1/Report/UpdateReport';
+          const url = this.baseUrl + 'api/v1/Report/UpdateReport';
 
           this.http.post<any>(url, report, {
             headers: new HttpHeaders({
@@ -274,7 +276,7 @@ export class HospitalizationComponent {
           }).subscribe({
             next: (res) => {
               if (res.statusMessage === 'success') {
-                const updateurl = this.apiUrl + "/api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" + Number(userdata?.userId) + "&IsFirstVerification=" + report.isFirstOrPeer;
+                const updateurl = this.baseUrl + "api/v1/Report/UpdateFirstVerification?Reportid=" + report.reportId + "&FirstReviewUserId=" + Number(userdata?.userId) + "&IsFirstVerification=" + report.isFirstOrPeer;
 
                 this.http.get<any>(updateurl).subscribe({
                   next: (res) => {

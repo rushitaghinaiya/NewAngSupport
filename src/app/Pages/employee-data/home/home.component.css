@@ -3,6 +3,9 @@ body {
     font-family: 'Poppins', sans-serif;
     background: #fafafa;
 }
+.d-none {
+  display: none;
+}
 .main {
     overflow-x: hidden;
   }
@@ -63,14 +66,23 @@ a:focus {
 }
 
 #sidebar.active {
-    margin-left: -250px;
+    min-width: 20px;
+    max-width: 70px;
 }
 
 #sidebar .sidebar-header {
     padding: 13px 20px;
     background: rgb(242 242 242);
 }
-
+#sidebar .sidebar-header-min {
+    padding: 13px 20px;
+    background: rgb(242 242 242);
+    height: 65px;
+   
+}
+#sidebar .sidebar-logo-min {
+   height: 100%;
+}
 #sidebar ul.components {
     padding: 20px 0;
     border-bottom: 1px solid #47748b;

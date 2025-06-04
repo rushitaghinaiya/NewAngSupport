@@ -48,8 +48,7 @@
       <div class="mb-2 d-flex align-items-center gap-2">
         <ng-container *ngIf="reports && reports?.Report?.tests && reports.Report.tests.length > 0">
           <select class="form-select" [(ngModel)]="reports.Report.selectedTestId">
-            <option *ngFor="let test of reports.Report?.tests; let i = index" [id]="test.testId"
-              [value]="test.testId">
+            <option *ngFor="let test of reports.Report?.tests; let i = index" [id]="test.testId" [value]="test.testId">
               {{ test.name }}
             </option>
           </select>
@@ -132,9 +131,9 @@
                         <button *ngIf="editIndex === i" (click)="editIndexFn()" class="btn btn-primary btn-sm p-1">
                           <i class="bi bi-check2"></i>
                         </button>
-                         <button (click)="addRowAfter(field.testFieldId)" class="btn btn-success btn-sm p-1 ms-2">
-                            <i class="bi bi-plus"></i>
-                          </button>
+                        <button (click)="addRowAfter(field.testFieldId)" class="btn btn-success btn-sm p-1 ms-2">
+                          <i class="bi bi-plus"></i>
+                        </button>
                         <button (click)="deleteRow(field.testFieldId)" class="btn btn-danger btn-sm p-1 ms-2">
                           <i class="bi bi-x"></i>
                         </button>
@@ -172,9 +171,12 @@
         <label class="form-label fw-semibold">Notes:</label>
         <textarea class="form-control" rows="1" placeholder="Test Note"></textarea>
       </div>
-
+      <div class="mt-3 text-left text-danger small" [class.d-none]="isNoteDisabled ==true">
+        <em>Note :Please save report before report verification.</em>
+      </div>
       <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-success" (click)="VerifyTest()">Verify Report</button>
+        <button class="btn btn-outline-success" [disabled]="isVerifyDisabled" (click)="VerifyTest()">Verify
+          Report</button>
         <button (click)="updateTest()" class="btn btn-outline-success">Save Report</button>
       </div>
     </div>
@@ -240,11 +242,20 @@
             <div class="row mb-4">
               <div class="col-md-6 fv-row">
                 <label class="required">Test Name</label>
-                <input type="text" class="form-control" placeholder="enter test name" [(ngModel)]="reports.Test.name"
-                  name="testName" id="NewTest_TestName_0__Name" [ngModelOptions]="{standalone: true}" required>
 
+                <input type="text" class="form-control" placeholder="Enter test name" [(ngModel)]="reports.Test.name"
+                  name="testName" id="NewTest_TestName_0__Name" [ngModelOptions]="{ standalone: true }"
+                  (input)="onTestNameInput()" (focus)="showSuggestions = true" (blur)="hideSuggestions()"
+                  autocomplete="off" required />
+
+                <ul class="list-group position-absolute w-100" *ngIf="filteredTestNames.length > 0"
+                  style="z-index: 1000;">
+                  <li class="list-group-item list-group-item-action" *ngFor="let suggestion of filteredTestNames"
+                    (mousedown)="selectSuggestion(suggestion)">
+                    {{ suggestion.description }}
+                  </li>
+                </ul>
                 <input type="hidden" [(ngModel)]="reports.Report.reportId" [ngModelOptions]="{standalone: true}" />
-
               </div>
 
               <div class="col-md-4 fv-row">
@@ -371,5 +382,3 @@
 </div>
 
 <!-- Modal Component (moved here for better structure) -->
-<app-add-test-modal *ngIf="showAddTestModal" [reports]="reports" (close)="onCloseModal()">
-</app-add-test-modal>
