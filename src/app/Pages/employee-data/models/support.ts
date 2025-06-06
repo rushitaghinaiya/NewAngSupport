@@ -1,3 +1,4 @@
 export interface Support {
-    fullName:string
+    fullName:string,
+    userId:number
 }

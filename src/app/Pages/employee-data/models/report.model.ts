@@ -15,12 +15,12 @@ export interface TestField {
   testValue: number;
   unit: string;
   severity: string;
-  colour:string;
+  colour: string;
   testFieldRanges: TestFieldRange[];
   range: Range;
-  createdOn:Date;
-  createdBy:string;
-  createdAt:string;
+  createdOn: Date;
+  createdBy: string;
+  createdAt: string;
 }
 export enum SupportUserType {
   USER = 1,
@@ -42,10 +42,10 @@ export interface Test {
   createdOn?: Date;
   createdBy?: string;
   createdAt?: string;
-   updatedBy:string;
-  updatedAt:string;
-  updatedOn:Date;
-  isFirst:boolean;
+  updatedBy: string;
+  updatedAt: string;
+  updatedOn: Date;
+  isFirst: boolean;
 }
 
 export interface Report {
@@ -75,15 +75,15 @@ export interface Report {
   issuedOn?: Date;
   reportType?: string;
   selectedTestId?: number;
-  supportUserType?:SupportUserType;
-  reportFromId?:number;
-  reportFrom?:string;
-  updatedBy:string;
-  updatedAt:string;
-  updatedOn:Date;
-  isFirstOrPeer?:boolean;
-  reportHeaderData:ReportHeaderData;
-  
+  supportUserType?: SupportUserType;
+  reportFromId?: number;
+  reportFrom?: string;
+  updatedBy: string;
+  updatedAt: string;
+  updatedOn: Date;
+  isFirstOrPeer?: boolean;
+  reportHeaderData: ReportHeaderData;
+
 }
 export class TestNote {
   testNoteId: number = 0;
@@ -105,6 +105,7 @@ export interface ReportVM {
   TestTypes: TestType[];
   BloodReportTypes: ReportType[];
   OtherReason: string;
+  InvalidReportReason?: InvalidReportReason;
 }
 
 export class TestType {
@@ -124,4 +125,39 @@ export interface Range {
   min: string;
   max: string;
   operator: string;
+}
+
+export enum InvalidReportReason {
+  SELECT_THE_REASON = 'SELECT_THE_REASON',
+  REPORT_FILE_NOT_DISPLAYING = 'REPORT_FILE_NOT_DISPLAYING',
+  REPORT_NOT_CLEAR = 'REPORT_NOT_CLEAR',
+  INVALID_REPORT = 'INVALID_REPORT',
+  OTHER = 'OTHER'
+}
+export const InvalidReportReasonDisplayMap: Record<InvalidReportReason, string> = {
+  [InvalidReportReason.SELECT_THE_REASON]: 'Please select the reason',
+  [InvalidReportReason.REPORT_FILE_NOT_DISPLAYING]: 'Report file not displaying.',
+  [InvalidReportReason.REPORT_NOT_CLEAR]: 'Report not clear',
+  [InvalidReportReason.INVALID_REPORT]: 'Invalid Report',
+  [InvalidReportReason.OTHER]: 'Other'
+};
+export interface InvalidReport {
+  ReportId: number;
+  ReportUserId: number;
+  SupportUserId: number;
+  Reason: string;
+  VerificationStatus: VerificationStatus;
+  UpdatedOn: Date;
+  CreatedOn: Date;
+  UpdatedBy: string;
+  CreatedBy: string;
+  UpdatedAt: string;
+  CreatedAt: string;
+}
+
+export enum VerificationStatus {
+  VERIFIED = 0,
+  UNVERIFIED = 1,
+  MISMATCHED = 2,
+  INVALID = 3
 }

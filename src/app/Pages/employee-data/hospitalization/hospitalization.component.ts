@@ -47,7 +47,6 @@ export class HospitalizationComponent {
     filePath: '',
     userId: 0,
     medicineMasters: [],
-    // Add default values for all required fields in HospitalizationReportVM
     reportFrom: '',
     isFirstOrPeer: false,
     hospitalizationId: 0,
@@ -90,7 +89,6 @@ export class HospitalizationComponent {
   filteredMedicines: any[][] = [];
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      debugger;
       if (params['report']) {
         this.report = JSON.parse(params['report']);
         console.log('Report Data:', this.report);
@@ -102,7 +100,6 @@ export class HospitalizationComponent {
 
 
   loadHospitalizationData(report: Report): void {
-    debugger;
     this.HospitalizationReportVM = {
       reportId: report.reportId,
       reportFromId: report.reportFromId,
@@ -125,7 +122,6 @@ export class HospitalizationComponent {
     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPath);
     this.http.get<any>(`${this.baseUrl}api/v1/Hospitalization/GetMedicineMaster`).subscribe({
       next: (response: any) => {
-        debugger;
         if (response?.statusMessage?.toLowerCase() === 'success' && response.responseData) {
           this.HospitalizationReportVM.medicineMasters = response.responseData;
           this.filteredMedicines = this.HospitalizationReportVM.hospitalizationMedications.map(() =>
@@ -142,7 +138,6 @@ export class HospitalizationComponent {
       const url = `${this.baseUrl}api/v1/Hospitalization/GetHospitalizationDetail/${report.userId}/${report.reportFromId}`;
       this.http.get<any>(url).subscribe({
         next: (res) => {
-          debugger;
           if (res?.statusMessage?.toLowerCase() === 'success' && res.responseData) {
             const hospitalization = res.responseData;
 
@@ -310,7 +305,6 @@ export class HospitalizationComponent {
   }
   addMedication(index?: number): void {
     const current = this.HospitalizationReportVM.hospitalizationMedications[index ?? 0];
-    debugger;
     const newMedication = {
       hospitalizationId: current.hospitalizationId,
       medicineId: current.medicineId,
@@ -326,7 +320,6 @@ export class HospitalizationComponent {
     }
   }
   addEmptyMedicine() {
-    debugger;
     this.HospitalizationReportVM?.hospitalizationMedications.push({
       hospitalizationMedicationId: 0,
       medicineId: 0,

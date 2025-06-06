@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { Test } from '../models/report.model';
+import { Test, VerificationStatus } from '../models/report.model';
 import { TestField } from '../models/report.model';
 import { Report } from '../models/report.model';
 import { ReportVM } from '../models/report.model';
@@ -16,6 +16,7 @@ import { API_BASE_URL, VirtualDirectoryUrl } from '../../../config/constants';
 import { Support } from '../models/support';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { InvalidReportReason, InvalidReportReasonDisplayMap, InvalidReport } from '../models/report.model';
 @Component({
   standalone: true,
   selector: 'app-report',
@@ -26,6 +27,11 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 export class ReportComponent implements OnInit {
   private baseUrl = API_BASE_URL;
   private fileUrl = VirtualDirectoryUrl;
+  selectedReason: InvalidReportReason = InvalidReportReason.SELECT_THE_REASON;
+  reportReasons = Object.values(InvalidReportReason);
+  reasonDisplayMap = InvalidReportReasonDisplayMap;
+  InvalidReportReason = InvalidReportReason;
+  otherReason: string = '';
   Test = {
     name: ''
   };
@@ -60,6 +66,7 @@ export class ReportComponent implements OnInit {
   };
   support: Support = {
     fullName: '',
+    userId: 0
   };
   showAddTestModal = false;
   showAddNewTestModal = false;
@@ -69,9 +76,12 @@ export class ReportComponent implements OnInit {
   showSuggestions = false;
 
   private testNameInput$ = new Subject<string>();
+  showInvalidReportModal = false
+
   router = inject(Router);
   constructor(private route: ActivatedRoute, private http: HttpClient, private sanitizer: DomSanitizer) { }
   ngOnInit(): void {
+    //  this.selectedReason = InvalidReportReason.SELECT_THE_REASON;
 
     this.route.queryParams.subscribe(params => {
       this.reportId = +params['id'];
@@ -85,7 +95,7 @@ export class ReportComponent implements OnInit {
         )
         .subscribe((res: any) => {
           debugger;
-          if (res.statusMessage=="success") {
+          if (res.statusMessage == "success") {
             this.filteredTestNames = res.responseData;
           } else {
             this.filteredTestNames = [];
@@ -318,7 +328,13 @@ export class ReportComponent implements OnInit {
       }
     }
   }
+  openInvalidreportModal(): void {
 
+    this.showInvalidReportModal = true;
+  }
+  closeInvalidreportModal() {
+    this.showInvalidReportModal = false;
+  }
   enableEdit(index: number) {
     this.editIndex = index;
     this.disableVerify();
@@ -543,5 +559,57 @@ export class ReportComponent implements OnInit {
     setTimeout(() => {
       this.showSuggestions = false;
     }, 200);
+  }
+  MarkReportInvalid() {
+    debugger;
+    const report: InvalidReport = {
+      ReportId: this.reports.Report.reportId,
+      ReportUserId: this.reports.Report.userId,
+      SupportUserId: this.support.userId,
+      Reason: '',
+      VerificationStatus: VerificationStatus.INVALID,
+      CreatedOn: new Date(),
+      UpdatedOn: new Date(),
+      CreatedBy: this.support.fullName,
+      UpdatedBy: this.support.fullName,
+      CreatedAt: 'Support',
+      UpdatedAt: 'Support'
+    };
+
+    if (
+      this.reports.InvalidReportReason === InvalidReportReason.OTHER &&
+      this.reports.OtherReason?.trim()
+    ) {
+      report.Reason = `${this.reports.InvalidReportReason} : ${this.reports.OtherReason}`;
+    } else {
+      report.Reason = `${this.reports?.InvalidReportReason}`;
+    }
+    this.http.post(`${this.baseUrl}api/v1/Report/ReportIsFromMailOrNot`, report).subscribe((res: any) => {
+      const response = res?.responseData;
+      if (response) {
+        this.http.post(`${this.baseUrl}api/v1/Report/UpdateReportFrzInd`, report).subscribe((res: any) => {
+
+          if (res.responseData) {
+            this.router.navigateByUrl("user-list")
+          }
+        });
+      }
+      else {
+        this.http.post(`${this.baseUrl}api/v1/Report/MarkReportInvalid`, report).subscribe((res: any) => {
+          if (res.responseData) {
+            alert('Report successfully marked as invalid.');
+            this.router.navigateByUrl("user-list")
+          }
+          else {
+            alert('Unable to mark report invalid.Please try again.');
+            this.isFirst = localStorage.getItem("isFirst") === "true"
+            this.router.navigate(['/report'], {
+              queryParams: { id: this.reports.Report.reportId, isFirst: this.isFirst }
+            });
+          }
+        });
+      }
+    });
+
   }
 }

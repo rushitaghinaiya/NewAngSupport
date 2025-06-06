@@ -1,8 +1,0 @@
-{
-  "/patientfiles": {
-    "target": "https://staging.themedibank.in",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug"
-  }
-}
