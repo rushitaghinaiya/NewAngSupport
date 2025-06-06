@@ -6,7 +6,6 @@ import { TestField } from '../models/report.model';
 import { Report } from '../models/report.model';
 import { ReportVM } from '../models/report.model';
 import { CommonModule } from '@angular/common';
-import { AddTestModalComponent } from '../add-test-modal/add-test-modal.component';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
